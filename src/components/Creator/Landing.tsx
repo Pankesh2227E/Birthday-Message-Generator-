@@ -69,6 +69,28 @@ export const Landing = ({ onStart }: { onStart: () => void }) => {
               See how it works
             </Button>
           </div>
+
+          {/* Terms & Conditions Acceptance Notice */}
+          <p className="text-xs text-white/50 pt-3 max-w-md mx-auto leading-relaxed">
+            By pressing <span className="text-white/80 font-medium">"Create My Surprise"</span>, you accept our{" "}
+            <a 
+              href="/terms-and-conditions" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary underline hover:text-primary/80 font-medium transition-colors"
+            >
+              Terms & Conditions
+            </a>{" "}
+            and{" "}
+            <a 
+              href="/privacy-policy" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary underline hover:text-primary/80 font-medium transition-colors"
+            >
+              Privacy Policy
+            </a>.
+          </p>
         </motion.div>
       </main>
 

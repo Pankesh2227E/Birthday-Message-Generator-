@@ -712,7 +712,20 @@ export function renderSitemapXml(origin: string): string {
 }
 
 export function renderRobotsTxt(origin: string): string {
-  return `User-agent: *
+  return `User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /surprise/
+Disallow: /uploads/
+Disallow: /s/
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /surprise/

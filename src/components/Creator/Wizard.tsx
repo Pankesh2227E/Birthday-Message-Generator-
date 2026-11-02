@@ -960,21 +960,6 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                     </p>
                   </div>
                 </div>
-
-                {/* Terms & Conditions Acceptance Notice (Requirement 3) */}
-                <div className="pt-2 text-center">
-                  <p className="text-xs text-white/50 leading-relaxed">
-                    By pressing the "Create My Surprise" button you accept our{" "}
-                    <a 
-                      href="/terms-and-conditions" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-primary underline hover:text-primary/80 font-medium transition-colors"
-                    >
-                      Terms & Conditions
-                    </a>.
-                  </p>
-                </div>
               </div>
             )}
           </motion.div>

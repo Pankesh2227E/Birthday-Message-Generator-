@@ -6,6 +6,7 @@ import { RecipientExperience } from './components/Recipient/RecipientExperience'
 import { AppView, SurpriseData } from './types';
 import { Button } from './components/DesignSystem';
 import { Copy, RefreshCw, ExternalLink } from 'lucide-react';
+import { ShareScreen } from './components/Creator/ShareScreen';
 
 const MOCK_SURPRISE: SurpriseData = {
   recipientName: 'Alex',
@@ -164,33 +165,12 @@ export default function App() {
 
   if (view === 'RECIPIENT_PREVIEW' && surpriseData) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 space-y-12">
-        <div className="absolute inset-0 cinematic-gradient -z-10" />
-        
-        <div className="text-center space-y-4">
-          <div className="text-6xl">✨</div>
-          <h1 className="text-4xl font-serif">Your surprise is ready!</h1>
-          <p className="text-white/40">You've created something beautiful for {surpriseData.recipientName}.</p>
-        </div>
-
-        <div className="w-full max-w-sm space-y-4">
-          <Button onClick={() => setView('RECIPIENT_VIEW')} className="w-full flex items-center justify-center gap-2">
-            <ExternalLink size={18} /> Open Full Surprise
-          </Button>
-          <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
-            <Copy size={18} /> Copy Share Link
-          </Button>
-          <Button variant="ghost" onClick={() => setView('LANDING')} className="w-full flex items-center justify-center gap-2">
-            <RefreshCw size={18} /> Create Another
-          </Button>
-        </div>
-
-        <div className="pt-20 text-center">
-           <p className="text-xs uppercase tracking-widest text-white/20 font-bold mb-4">Enjoyed creating this?</p>
-           <p className="text-xs text-white/40 max-w-xs mx-auto italic">This project is independently built and maintained. Made with love for creators like you.</p>
-           <button className="mt-4 text-xs text-primary font-bold hover:underline">Support the Creator</button>
-        </div>
-      </div>
+      <ShareScreen
+        surpriseId={surpriseId}
+        surpriseData={surpriseData}
+        onOpenPreview={() => setView('RECIPIENT_VIEW')}
+        onCreateAnother={() => setView('LANDING')}
+      />
     );
   }
 
