@@ -153,7 +153,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     };
     preload('/gallery-bg.webp');
     preload('/letter-bg-desktop.webp');
-    preload('/assets/aistudio/IMG_2544_238341c1.jpeg');
+    preload('/letter-bg-mobile.webp');
     preload('/things-i-love-bg.jpeg');
   }, []);
 
@@ -590,7 +590,7 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
 };
 
 // --- Letter Screen: Genuine 3D Book Experience ---
-const MOBILE_LETTER_IMG = '/assets/aistudio/IMG_2544_238341c1.jpeg';
+const MOBILE_LETTER_IMG = '/letter-bg-mobile.webp';
 const DESKTOP_LETTER_IMG = '/letter-bg-desktop.webp';
 
 const LetterView = ({ message, aiMessage, name, finalMessage }: { message: string, aiMessage?: string, name: string, finalMessage?: string }) => {
@@ -659,7 +659,7 @@ const LetterView = ({ message, aiMessage, name, finalMessage }: { message: strin
           {/* Mobile Vertical Stationery */}
           <img 
             src={MOBILE_LETTER_IMG}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/letter-bg-mobile.jpeg'; }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/letter-bg-mobile.png'; }}
             alt="Birthday stationery"
             className="md:hidden absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           />
@@ -667,14 +667,7 @@ const LetterView = ({ message, aiMessage, name, finalMessage }: { message: strin
           {/* Desktop Horizontal Stationery */}
           <img 
             src={DESKTOP_LETTER_IMG}
-            onError={(e) => { 
-              const img = e.currentTarget as HTMLImageElement;
-              if (img.src.includes('.webp')) {
-                img.src = '/letter-bg-desktop.png';
-              } else {
-                img.src = '/assets/aistudio/A9B0CD7C-67D7-4D2B-8BFC-EB86710D8FF1_7c51070b.png';
-              }
-            }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/letter-bg-desktop.png'; }}
             alt="Birthday stationery"
             className="hidden md:block absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           />
