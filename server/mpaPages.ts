@@ -23,6 +23,7 @@ function baseLayout({
   <title>${title}</title>
   <meta name="description" content="${description}">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="google-site-verification" content="google3b96e2c778683946">
   <link rel="canonical" href="${canonicalUrl}">
 
   <!-- OpenGraph Social Cards -->

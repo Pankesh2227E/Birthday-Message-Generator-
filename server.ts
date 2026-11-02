@@ -401,6 +401,12 @@ async function startServer() {
     res.send(renderRobotsTxt(origin));
   });
 
+  // Google Search Console HTML verification endpoint
+  app.get('/google3b96e2c778683946.html', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send('google-site-verification: google3b96e2c778683946.html');
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
