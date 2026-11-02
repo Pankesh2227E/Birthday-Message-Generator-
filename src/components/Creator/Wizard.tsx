@@ -1,0 +1,1034 @@
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Button, Input, TextArea, StepIndicator, Card, IconButton } from '../DesignSystem';
+import { X, ArrowLeft, ArrowRight, Camera, Sparkles, Check, Plus, Calendar, ShieldCheck } from 'lucide-react';
+import { Relationship, SurpriseData } from '../../types';
+import { compressImageTo300KB } from '../../utils/imageCompressor';
+
+const RELATIONSHIPS: Relationship[] = [
+  'Girlfriend', 'Boyfriend', 'Best Friend', 'Wife', 'Husband', 'Sister', 'Brother', 'Other'
+];
+
+const HOW_WE_MET_OPTIONS = [
+  'School',
+  'College',
+  'Work',
+  'Café',
+  'Wedding',
+  'Through a friend',
+  'Online',
+  'Family / relatives',
+  'Somewhere random',
+  'Other'
+];
+
+const BASE_PERSONALITY_TRAITS = [
+  'Funny',
+  'Caring',
+  'Kind',
+  'Smart',
+  'Adventurous',
+  'Calm',
+  'Energetic',
+  'Creative',
+  'Helpful',
+  'Confident',
+  'Quiet',
+  'Always makes people laugh',
+  'Always there for everyone'
+];
+
+const RELATIONSHIP_PERSONALITY: Record<string, string[]> = {
+  'Girlfriend': ['Loving', 'Romantic', 'Supportive', 'Funny together', 'Favorite date', 'Always there for me'],
+  'Boyfriend': ['Loving', 'Romantic', 'Supportive', 'Funny together', 'Favorite date', 'Always there for me'],
+  'Wife': ['Loving', 'Romantic', 'Supportive', 'Funny together', 'Favorite date', 'Always there for me'],
+  'Husband': ['Loving', 'Romantic', 'Supportive', 'Funny together', 'Favorite date', 'Always there for me'],
+  'Best Friend': ['Always has my back', 'Makes me laugh', 'Knows me better than anyone', 'Adventure buddy', 'Partner in crime', 'Always there for me'],
+  'Sister': ['Supportive', 'Protective', 'Caring', 'Kind', 'Always there for me'],
+  'Brother': ['Supportive', 'Protective', 'Caring', 'Kind', 'Always there for me'],
+};
+
+const INTERESTS_LIST = [
+  'Music',
+  'Movies',
+  'Gaming',
+  'Football',
+  'Cricket',
+  'Gym / Fitness',
+  'Books',
+  'Travel',
+  'Photography',
+  'Food',
+  'Pets',
+  'Art',
+  'Fashion',
+  'Technology',
+  'Cars',
+  'Cooking',
+  'Nature'
+];
+
+export const CAKE_OPTIONS = [
+  {
+    id: 'user-cake-gif',
+    name: 'Your Birthday Cake (Animated GIF)',
+    url: 'https://res.cloudinary.com/zxgbxh38/image/upload/w_400,c_scale,fl_lossy/v1791811363/birthday_surprise/official_user_birthday_cake.gif',
+    thumbnail: 'https://res.cloudinary.com/zxgbxh38/image/upload/w_200,c_scale,fl_lossy/v1791811363/birthday_surprise/official_user_birthday_cake.gif',
+    type: 'gif'
+  }
+];
+
+const STEPS = [
+  { id: '01', title: 'About them' },
+  { id: '02', title: 'How you met' },
+  { id: '03', title: 'A memory' },
+  { id: '04', title: 'Personality' },
+  { id: '05', title: 'Things they love' },
+  { id: '06', title: 'Photos' },
+  { id: '07', title: 'Final touches' },
+];
+
+export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => void }) => {
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState<Partial<SurpriseData>>({
+    recipientName: '',
+    recipientAge: '',
+    dob: '',
+    cakeUrl: CAKE_OPTIONS[0].url,
+    relationship: 'Best Friend',
+    howWeMet: '',
+    favoriteMemory: '',
+    personality: '',
+    interests: '',
+    personalMessage: '',
+    memories: []
+  });
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const dobInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showCakeSelector, setShowCakeSelector] = useState(false);
+
+  // Helper states for selectable steps
+  const [howWeMetChoice, setHowWeMetChoice] = useState<string>('');
+  const [customHowWeMet, setCustomHowWeMet] = useState<string>('');
+
+  const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([]);
+  const [customPersonality, setCustomPersonality] = useState<string>('');
+
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [customInterest, setCustomInterest] = useState<string>('');
+
+  const update = (fields: Partial<SurpriseData>) => setData(prev => ({ ...prev, ...fields }));
+
+  const next = () => {
+    // Sync current step data before moving
+    if (step === 2) {
+      const finalHowWeMet = customHowWeMet.trim() || (howWeMetChoice && howWeMetChoice !== 'Other' ? howWeMetChoice : '');
+      update({ howWeMet: finalHowWeMet });
+    } else if (step === 4) {
+      const traits = [...selectedPersonalities];
+      if (customPersonality.trim() && !traits.includes(customPersonality.trim())) {
+        traits.push(customPersonality.trim());
+      }
+      update({ personality: traits.join(', ') });
+    } else if (step === 5) {
+      const ints = [...selectedInterests];
+      if (customInterest.trim() && !ints.includes(customInterest.trim())) {
+        ints.push(customInterest.trim());
+      }
+      update({ interests: ints.join(', ') });
+    }
+
+    setStep(s => Math.min(s + 1, 7));
+  };
+
+  const skipStep = () => {
+    // Explicit skip: clear or keep empty
+    if (step === 2) {
+      setHowWeMetChoice('');
+      setCustomHowWeMet('');
+      update({ howWeMet: '' });
+    } else if (step === 3) {
+      update({ favoriteMemory: '' });
+    } else if (step === 4) {
+      setSelectedPersonalities([]);
+      setCustomPersonality('');
+      update({ personality: '' });
+    } else if (step === 5) {
+      setSelectedInterests([]);
+      setCustomInterest('');
+      update({ interests: '' });
+    }
+    setStep(s => Math.min(s + 1, 7));
+  };
+
+  const back = () => setStep(s => Math.max(s - 1, 1));
+
+  // Memory Upload Handler (Min 3, Max 5)
+  const handleMemoryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = Array.from(e.target.files || []) as File[];
+    if (rawFiles.length === 0) return;
+    setUploadError(null);
+
+    const currentCount = data.memories?.length || 0;
+    const remainingSlots = 5 - currentCount;
+
+    if (remainingSlots <= 0) {
+      setUploadError('You have reached the maximum limit of 5 photos.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    let filesToProcess = rawFiles;
+    if (rawFiles.length > remainingSlots) {
+      setUploadError(`Selected photos exceeded slot limit. Adding the first ${remainingSlots} photo(s).`);
+      filesToProcess = rawFiles.slice(0, remainingSlots);
+    }
+
+    setIsUploading(true);
+
+    try {
+      for (const file of filesToProcess) {
+        if (!(file instanceof File)) continue;
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif', 'image/avif', 'image/x-heic', 'image/heic-sequence'];
+        const isSupportedImage = (file.type && file.type.startsWith('image/')) || 
+          allowedTypes.includes(file.type) || 
+          /\.(jpe?g|png|webp|heic|heif|gif|avif|bmp|tiff)$/i.test(file.name);
+        
+        if (!isSupportedImage) {
+          setUploadError(`"${file.name}" is not a recognized photo format. Please upload JPG, PNG, WEBP, or HEIC.`);
+          continue;
+        }
+
+        const maxSize = 50 * 1024 * 1024; // 50MB limit
+        if (file.size > maxSize) {
+          setUploadError(`"${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose an image under 50 MB.`);
+          continue;
+        }
+
+        // Compress image to <= 300KB JPEG (skips if already <= 300KB, failsafe 2s timeout)
+        let fileToUpload: File | Blob = file;
+        try {
+          fileToUpload = await compressImageTo300KB(file);
+        } catch (compErr) {
+          console.warn('Client compression fallback to original file:', compErr);
+          fileToUpload = file;
+        }
+
+        const safeFilename = file.name ? file.name.replace(/\.[^/.]+$/, '') + '.jpg' : 'photo.jpg';
+        const formData = new FormData();
+        formData.append('file', fileToUpload, safeFilename);
+        formData.append('publicId', `mem_${Date.now()}_${Math.random().toString(36).substring(7)}`);
+
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const contentType = res.headers.get('content-type');
+          let result: any;
+          if (contentType && contentType.includes('application/json')) {
+            result = await res.json();
+          } else {
+            throw new Error('Server returned an invalid response format.');
+          }
+
+          if (!res.ok) {
+            throw new Error(result.error || `Upload failed with status ${res.status}`);
+          }
+
+          if (!result.url) {
+            throw new Error('Upload succeeded but no image URL was returned.');
+          }
+
+          setData(prev => {
+            const currentMemories = prev.memories || [];
+            if (currentMemories.length >= 5) return prev;
+            return {
+              ...prev,
+              memories: [...currentMemories, {
+                id: Math.random().toString(36).substring(7),
+                url: result.url,
+                publicId: result.publicId
+              }]
+            };
+          });
+        } catch (innerErr: any) {
+          console.error(`[UPLOAD] Error uploading ${file.name}:`, innerErr);
+          setUploadError(`Could not upload "${file.name}": ${innerErr.message}`);
+        }
+      }
+    } catch (err: any) {
+      console.error('[UPLOAD] Unexpected error during upload:', err);
+      setUploadError(`An unexpected error occurred during upload: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeMemory = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      memories: (prev.memories || []).filter(m => m.id !== id)
+    }));
+  };
+
+  // Toggle selection helpers
+  const togglePersonality = (trait: string) => {
+    setSelectedPersonalities(prev => 
+      prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]
+    );
+  };
+
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]
+    );
+  };
+
+  // Determine personality suggestion list based on relationship
+  const relPersonalityTraits = data.relationship ? (RELATIONSHIP_PERSONALITY[data.relationship] || []) : [];
+  const combinedPersonalityList = Array.from(new Set([...relPersonalityTraits, ...BASE_PERSONALITY_TRAITS]));
+
+  const currentStepInfo = STEPS[step - 1] || STEPS[0];
+  const photoCount = data.memories?.length || 0;
+  const isPhotosValid = photoCount >= 3 && photoCount <= 5;
+  const isStep1Valid = Boolean(data.recipientName?.trim()) && Boolean(data.recipientAge?.trim());
+
+  const isSkippableStep = [2, 3, 4, 5].includes(step);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center bg-background text-white">
+      {/* Wizard Header */}
+      <header className="w-full max-w-2xl px-6 py-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-50 border-b border-white/5">
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">
+            Step {currentStepInfo.id} of 07 — {currentStepInfo.title}
+          </span>
+          <h2 className="text-xs font-medium text-white/40">Personalized Birthday Journey</h2>
+        </div>
+        <IconButton icon={X} onClick={() => window.location.reload()} />
+      </header>
+
+      <div className="w-full max-w-2xl px-6 pt-6 pb-36">
+        <div className="mb-8">
+          <StepIndicator current={step} total={7} />
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-8"
+          >
+            {/* STEP 1: ABOUT THEM */}
+            {step === 1 && (
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl md:text-4xl font-serif">Who are we celebrating?</h2>
+                  <p className="text-white/40 text-sm">Tell us their name, age, and your bond with them.</p>
+                </div>
+
+                <div className="space-y-6">
+                  <Input 
+                    label="Their Name *" 
+                    placeholder="e.g. Sarah" 
+                    value={data.recipientName || ''} 
+                    onChange={e => update({ recipientName: e.target.value })}
+                  />
+                  <Input 
+                    label="Age *" 
+                    placeholder="e.g. 25" 
+                    type="number"
+                    value={data.recipientAge || ''} 
+                    onChange={e => update({ recipientAge: e.target.value })}
+                  />
+
+                  {/* Date of Birth (Optional) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label 
+                        htmlFor="dob-input" 
+                        className="text-xs uppercase tracking-widest text-white/40 font-semibold flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => {
+                          try {
+                            dobInputRef.current?.showPicker?.();
+                          } catch {
+                            dobInputRef.current?.focus();
+                          }
+                        }}
+                      >
+                        <Calendar size={13} className="text-primary" />
+                        Date of Birth (Optional)
+                      </label>
+                      {data.dob && (
+                        <button
+                          type="button"
+                          onClick={() => update({ dob: '' })}
+                          className="text-[11px] text-white/40 hover:text-white transition-colors"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div 
+                      className="relative cursor-pointer"
+                      onClick={() => {
+                        try {
+                          dobInputRef.current?.showPicker?.();
+                        } catch {
+                          dobInputRef.current?.focus();
+                        }
+                      }}
+                    >
+                      <input
+                        id="dob-input"
+                        ref={dobInputRef}
+                        type="date"
+                        className="w-full bg-surface border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-primary outline-none cursor-pointer [color-scheme:dark] transition-all hover:border-white/20"
+                        value={data.dob || ''}
+                        onChange={e => {
+                          const val = e.target.value;
+                          update({ dob: val });
+                          if (val) {
+                            const birthYear = new Date(val).getFullYear();
+                            const currentYear = new Date().getFullYear();
+                            const calculatedAge = currentYear - birthYear;
+                            if (calculatedAge > 0 && calculatedAge < 120) {
+                              update({ recipientAge: String(calculatedAge), dob: val });
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs uppercase tracking-widest text-white/40 font-semibold">
+                      Relationship *
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {RELATIONSHIPS.map(rel => (
+                        <button
+                          key={rel}
+                          type="button"
+                          onClick={() => update({ relationship: rel })}
+                          className={`p-3.5 rounded-xl border text-sm font-medium transition-all duration-200 text-center ${
+                            data.relationship === rel 
+                              ? 'border-primary bg-primary/15 text-primary shadow-[0_0_15px_rgba(217,70,239,0.2)]' 
+                              : 'border-white/5 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+                          }`}
+                        >
+                          {rel}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: HOW DID YOU MEET? */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[11px] text-white/60 uppercase tracking-widest">
+                    Optional
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-serif">How did you meet?</h2>
+                  <p className="text-white/40 text-sm">
+                    Choose a quick option, write your own story below, or both.
+                  </p>
+                </div>
+
+                {/* Option Pills (Horizontal Flow matching the sketch) */}
+                <div className="space-y-2.5">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-semibold">
+                    Quick Options
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {HOW_WE_MET_OPTIONS.map(opt => {
+                      const isSelected = howWeMetChoice === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setHowWeMetChoice('');
+                              if (customHowWeMet === opt) {
+                                setCustomHowWeMet('');
+                              }
+                            } else {
+                              setHowWeMetChoice(opt);
+                              if (!customHowWeMet || HOW_WE_MET_OPTIONS.includes(customHowWeMet)) {
+                                setCustomHowWeMet(opt === 'Other' ? '' : opt);
+                              }
+                            }
+                          }}
+                          className={`px-4 py-2.5 rounded-full border text-xs md:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'border-primary bg-primary/20 text-primary shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+                              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={13} className="text-primary" />}
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Clean rectangle curved-edge box */}
+                <div className="space-y-2 pt-1 w-full">
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-semibold">
+                    Write manually
+                  </label>
+                  <TextArea
+                    placeholder="Write manually..."
+                    value={customHowWeMet}
+                    onChange={e => setCustomHowWeMet(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: FAVORITE MEMORY */}
+            {step === 3 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[11px] text-white/60 uppercase tracking-widest">
+                    Optional
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-serif">What's one memory you'll never forget?</h2>
+                  <p className="text-white/40 text-sm">
+                    Pick an inspiration topic below, or describe your cherished memory directly.
+                  </p>
+                </div>
+
+                {/* Inspiration Pills */}
+                <div className="space-y-2.5">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-semibold">
+                    Memory Inspirations
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      'First road trip',
+                      'A memorable conversation',
+                      'A funny inside joke',
+                      'An unexpected adventure',
+                      'A special celebration',
+                      'Always being there'
+                    ].map(idea => {
+                      const isSelected = data.favoriteMemory?.includes(idea);
+                      return (
+                        <button
+                          key={idea}
+                          type="button"
+                          onClick={() => {
+                            const current = data.favoriteMemory || '';
+                            if (current.includes(idea)) {
+                              update({ favoriteMemory: current.replace(idea, '').trim() });
+                            } else {
+                              update({ favoriteMemory: current ? `${current} • ${idea}` : idea });
+                            }
+                          }}
+                          className={`px-4 py-2.5 rounded-full border text-xs md:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'border-primary bg-primary/20 text-primary shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+                              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={13} className="text-primary" />}
+                          {idea}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Clean rectangle curved-edge box */}
+                <div className="space-y-2 pt-1 w-full">
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-semibold">
+                    Write manually
+                  </label>
+                  <TextArea 
+                    placeholder="Write manually..."
+                    value={data.favoriteMemory || ''}
+                    onChange={e => update({ favoriteMemory: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: PERSONALITY QUIRKS */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[11px] text-white/60 uppercase tracking-widest">
+                    Optional
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-serif">What makes them... them?</h2>
+                  <p className="text-white/40 text-sm">
+                    Select personality quirks, write custom traits below, or both.
+                  </p>
+                </div>
+
+                {/* Option Pills */}
+                <div className="space-y-2.5">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-semibold">
+                    Personality Quirks & Traits
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {combinedPersonalityList.map(trait => {
+                      const isSelected = selectedPersonalities.includes(trait);
+                      return (
+                        <button
+                          key={trait}
+                          type="button"
+                          onClick={() => togglePersonality(trait)}
+                          className={`px-4 py-2.5 rounded-full border text-xs md:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'border-primary bg-primary/20 text-primary shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+                              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={13} className="text-primary" />}
+                          {trait}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Clean rectangle curved-edge box */}
+                <div className="space-y-2 pt-1 w-full">
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-semibold">
+                    Write manually
+                  </label>
+                  <TextArea 
+                    placeholder="Write manually..."
+                    value={customPersonality}
+                    onChange={e => setCustomPersonality(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: THINGS THEY LOVE / INTERESTS */}
+            {step === 5 && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-[11px] text-white/60 uppercase tracking-widest">
+                    Optional
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-serif">Things they love</h2>
+                  <p className="text-white/40 text-sm">
+                    Select interests below, add their specific passions manually, or both.
+                  </p>
+                </div>
+
+                {/* Option Pills */}
+                <div className="space-y-2.5">
+                  <label className="text-xs uppercase tracking-widest text-white/40 font-semibold">
+                    Interests & Hobbies
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {INTERESTS_LIST.map(interest => {
+                      const isSelected = selectedInterests.includes(interest);
+                      return (
+                        <button
+                          key={interest}
+                          type="button"
+                          onClick={() => toggleInterest(interest)}
+                          className={`px-4 py-2.5 rounded-full border text-xs md:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'border-primary bg-primary/20 text-primary shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+                              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={13} className="text-primary" />}
+                          {interest}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Clean rectangle curved-edge box */}
+                <div className="space-y-2 pt-1 w-full">
+                  <label className="text-xs uppercase tracking-widest text-white/50 font-semibold">
+                    Write manually
+                  </label>
+                  <TextArea 
+                    placeholder="Write manually..."
+                    value={customInterest}
+                    onChange={e => setCustomInterest(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: PHOTOS (MANDATORY: 3 TO 5) */}
+            {step === 6 && (
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[11px] text-primary font-semibold uppercase tracking-widest">
+                    Mandatory • 3 to 5 Photos
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-serif">Add 3–5 favorite photos</h2>
+                  <p className="text-white/40 text-sm">
+                    3 photos minimum • 5 photos maximum. These photos will form their personalized cinematic gallery.
+                  </p>
+                </div>
+
+                {/* Counter & Status Banner */}
+                <div className={`p-4 rounded-xl border text-sm flex items-center justify-between ${
+                  isPhotosValid 
+                    ? 'border-primary/30 bg-primary/10 text-white' 
+                    : 'border-white/10 bg-white/5 text-white/60'
+                }`}>
+                  <span className="font-semibold text-white">
+                    {photoCount} / 5 photos added
+                  </span>
+                  <span className="text-xs">
+                    {photoCount < 3 
+                      ? `${3 - photoCount} more required to continue` 
+                      : photoCount === 5 
+                        ? 'Maximum 5 photos reached' 
+                        : 'Requirement met! You can add up to 5'}
+                  </span>
+                </div>
+
+                {/* Error Banner if any upload error occurred */}
+                {uploadError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-center justify-between gap-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">⚠️</span>
+                      <span>{uploadError}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUploadError(null)}
+                      className="text-white/60 hover:text-white p-1 rounded-md transition-colors"
+                      title="Dismiss"
+                    >
+                      <X size={14} />
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Photos Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <AnimatePresence>
+                    {data.memories?.map((memory, idx) => (
+                      <motion.div
+                        key={memory.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="aspect-square relative group rounded-2xl overflow-hidden border border-white/10 bg-surface shadow-lg"
+                      >
+                        <img 
+                          src={memory.url} 
+                          alt={`Memory ${idx + 1}`} 
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-[10px] text-white/70 backdrop-blur-sm">
+                          Photo #{idx + 1}
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => removeMemory(memory.id)}
+                          className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-opacity shadow-md"
+                          title="Remove photo"
+                        >
+                          <X size={14} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {/* Add Photo Button (Visible only if under 5 photos) */}
+                  {photoCount < 5 && (
+                    <label className={`aspect-square rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/40 hover:bg-primary/5 flex flex-col items-center justify-center gap-3 text-white/40 hover:text-white transition-all group cursor-pointer ${
+                      isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}>
+                      <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,image/avif,image/*" 
+                        multiple 
+                        className="hidden" 
+                        disabled={isUploading}
+                        onChange={handleMemoryUpload}
+                      />
+                      {isUploading ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+                      ) : (
+                        <Camera size={28} className="group-hover:text-primary transition-colors" />
+                      )}
+                      <div className="text-center px-2">
+                        <span className="text-xs font-semibold block text-white/80">
+                          {isUploading ? 'Uploading...' : 'Add Photos'}
+                        </span>
+                        <span className="text-[10px] text-white/40 block mt-0.5">
+                          {5 - photoCount} remaining
+                        </span>
+                      </div>
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: FINAL TOUCHES & REVIEW */}
+            {step === 7 && (
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl md:text-4xl font-serif">Your surprise is almost ready.</h2>
+                  <p className="text-white/40 text-sm">
+                    Review your inputs and add an optional message from your heart.
+                  </p>
+                </div>
+
+                <Card className="space-y-4 divide-y divide-white/5">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-white/40 text-sm">Recipient</span>
+                    <span className="font-semibold text-white">{data.recipientName} ({data.recipientAge})</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-white/40 text-sm">Relationship</span>
+                    <span className="font-semibold text-primary">{data.relationship}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-white/40 text-sm">Photos</span>
+                    <span className="font-semibold text-white">{photoCount} Photos Ready</span>
+                  </div>
+                  {data.dob && (
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <span className="text-white/40">Date of Birth</span>
+                      <span className="text-white/80">{data.dob}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-2 text-sm">
+                    <span className="text-white/40">Birthday Cake</span>
+                    <span className="text-white/80 flex items-center gap-2">
+                      <img 
+                        src={data.cakeUrl || CAKE_OPTIONS[0].url} 
+                        alt="Cake" 
+                        className="w-5 h-5 rounded-full object-cover border border-white/20" 
+                      />
+                      {CAKE_OPTIONS.find(c => c.url === data.cakeUrl)?.name.split(' (')[0] || 'Celebration Cake'}
+                    </span>
+                  </div>
+                  {data.howWeMet && (
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <span className="text-white/40">How you met</span>
+                      <span className="text-white/80 text-right max-w-[200px] truncate">{data.howWeMet}</span>
+                    </div>
+                  )}
+                  {data.favoriteMemory && (
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <span className="text-white/40">Memory</span>
+                      <span className="text-white/80 text-right max-w-[200px] truncate">{data.favoriteMemory}</span>
+                    </div>
+                  )}
+                  {data.personality && (
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <span className="text-white/40">Personality</span>
+                      <span className="text-white/80 text-right max-w-[200px] truncate">{data.personality}</span>
+                    </div>
+                  )}
+                  {data.interests && (
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <span className="text-white/40">Interests</span>
+                      <span className="text-white/80 text-right max-w-[200px] truncate">{data.interests}</span>
+                    </div>
+                  )}
+                </Card>
+
+                {/* Button to Choose Cake Image or GIF from website */}
+                <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.03] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-2xl">🎂</span>
+                      <div>
+                        <h4 className="text-sm font-semibold text-white">Birthday Cake (Photo / GIF)</h4>
+                        <p className="text-[11px] text-white/40">Real animated cake displayed when they open their link</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCakeSelector(!showCakeSelector)}
+                      className="px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all"
+                    >
+                      {showCakeSelector ? 'Close' : 'Choose Cake'}
+                    </button>
+                  </div>
+
+                  {/* Selected Cake Preview Tile */}
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-white/5">
+                    <img
+                      src={CAKE_OPTIONS[0].thumbnail}
+                      alt=""
+                      className="w-14 h-14 rounded-xl object-cover border border-white/10"
+                    />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-white">
+                        {CAKE_OPTIONS[0].name}
+                      </p>
+                      <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
+                        ✓ Your official cake ready for celebration
+                      </p>
+                    </div>
+                  </div>
+
+                  {showCakeSelector && (
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="pt-1">
+                      {CAKE_OPTIONS.map(cake => {
+                        const isSelected = (data.cakeUrl || CAKE_OPTIONS[0].url) === cake.url;
+                        return (
+                          <button
+                            key={cake.id}
+                            type="button"
+                            onClick={() => {
+                              update({ cakeUrl: cake.url });
+                              setShowCakeSelector(false);
+                            }}
+                            className="w-full p-3 rounded-xl border border-primary bg-primary/15 shadow-[0_0_12px_rgba(217,70,239,0.25)] flex items-center gap-3 text-left transition-all"
+                          >
+                            <img 
+                              src={cake.thumbnail} 
+                              alt="" 
+                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" 
+                            />
+                            <div className="overflow-hidden flex-1">
+                              <span className="text-xs font-medium text-white block truncate">{cake.name}</span>
+                              <span className="text-[10px] text-primary uppercase font-bold">ANIMATED GIF • Drive Upload</span>
+                            </div>
+                            <span className="text-primary text-xs font-bold">✓ Selected</span>
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs uppercase tracking-widest text-white/60 font-semibold">
+                      Your Custom Birthday Message (Optional)
+                    </label>
+                    <span className="text-[10px] text-primary/80 font-medium">
+                      Your exact words
+                    </span>
+                  </div>
+                  <TextArea 
+                    placeholder="Write your custom birthday letter or personal note here... If you write your own message, your exact words will be delivered in their celebration!"
+                    value={data.personalMessage || ''}
+                    onChange={e => update({ personalMessage: e.target.value })}
+                  />
+                  <p className="text-[11px] text-white/40">
+                    💡 <strong>Smart Note:</strong> When you write your own message, your exact heartfelt words will be delivered.
+                  </p>
+                </div>
+
+                {/* 2-Day Privacy Guarantee Banner */}
+                <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-start gap-3">
+                  <ShieldCheck size={20} className="text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs space-y-1">
+                    <p className="font-semibold text-emerald-300">🛡️ 2-Day Birthday Privacy Guarantee</p>
+                    <p className="text-white/60">
+                      All photos, names, and memories you provide will automatically and permanently delete 2 days after the birthday.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Terms & Conditions Acceptance Notice (Requirement 3) */}
+                <div className="pt-2 text-center">
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    By pressing the "Create My Surprise" button you accept our{" "}
+                    <a 
+                      href="/terms-and-conditions" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-primary underline hover:text-primary/80 font-medium transition-colors"
+                    >
+                      Terms & Conditions
+                    </a>.
+                  </p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Navigation Bar */}
+      <footer className="fixed bottom-0 w-full max-w-2xl px-6 py-5 bg-background/90 backdrop-blur-lg border-t border-white/10 flex items-center justify-between gap-3 z-50">
+        <Button 
+          variant="ghost" 
+          onClick={back} 
+          className="px-4 text-white/50 hover:text-white" 
+          disabled={step === 1 || isUploading}
+        >
+          <ArrowLeft size={18} />
+        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Skip Action for Optional Steps */}
+          {isSkippableStep && (
+            <Button 
+              variant="ghost" 
+              onClick={skipStep}
+              className="text-white/40 hover:text-white text-xs px-4"
+              disabled={isUploading}
+            >
+              Skip
+            </Button>
+          )}
+
+          {/* Continue / Create Button */}
+          {step < 7 ? (
+            <Button 
+              onClick={next} 
+              disabled={
+                isUploading || 
+                (step === 1 && !isStep1Valid) || 
+                (step === 6 && !isPhotosValid)
+              } 
+              className="flex items-center justify-center gap-2 px-6"
+            >
+              {isUploading ? 'Uploading...' : 'Continue'} <ArrowRight size={18} />
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => onComplete(data as SurpriseData)} 
+              disabled={isUploading} 
+              className="flex items-center justify-center gap-2 px-6 shadow-[0_0_25px_rgba(217,70,239,0.35)]"
+            >
+              Create My Surprise ✨
+            </Button>
+          )}
+        </div>
+      </footer>
+    </div>
+  );
+};

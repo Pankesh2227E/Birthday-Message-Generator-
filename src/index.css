@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #D946EF;
+  --color-secondary: #2D1B33;
+  --color-accent: #F9A8D4;
+  --color-violet: #8B5CF6;
+  --color-background: #0A0A0B;
+  --color-surface: #121214;
+  
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased;
+  }
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.bloom-glow {
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.2);
+}
+
+.bloom-glow:hover {
+  box-shadow: 0 0 30px rgba(217, 70, 239, 0.4);
+}
+
+.cinematic-gradient {
+  background: radial-gradient(circle at center, rgba(217, 70, 239, 0.1) 0%, transparent 70%);
+}
+
+@keyframes butterflyWingLeft {
+  0%, 100% {
+    transform: perspective(300px) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(300px) rotateY(65deg);
+  }
+}
+
+@keyframes butterflyWingRight {
+  0%, 100% {
+    transform: perspective(300px) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(300px) rotateY(-65deg);
+  }
+}
+
+.animate-wing-left {
+  transform-origin: right center;
+  animation: butterflyWingLeft 0.38s ease-in-out infinite;
+}
+
+.animate-wing-right {
+  transform-origin: left center;
+  animation: butterflyWingRight 0.38s ease-in-out infinite;
+}
+
+/* --- 3D Book Animation & Real Page Turn Styles --- */
+.book-perspective {
+  perspective: 1400px;
+  -webkit-perspective: 1400px;
+}
+
+.book-preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.book-backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.book-spine-origin {
+  transform-origin: left center;
+  -webkit-transform-origin: left center;
+}
+
+.book-spine-crease {
+  box-shadow: inset 18px 0 25px -12px rgba(0, 0, 0, 0.4), inset -2px 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.book-page-depth {
+  box-shadow: 
+    -1px 0 2px rgba(0,0,0,0.08),
+    0 15px 35px -5px rgba(0,0,0,0.5),
+    0 30px 60px -12px rgba(80,10,25,0.35);
+}
+
+.book-cover-depth {
+  box-shadow:
+    0 20px 45px -10px rgba(0, 0, 0, 0.65),
+    0 30px 70px -15px rgba(120, 20, 50, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-spine-origin {
+    transition: opacity 0.3s ease !important;
+    transform: none !important;
+  }
+}
