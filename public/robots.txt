@@ -18,4 +18,4 @@ Disallow: /surprise/
 Disallow: /uploads/
 Disallow: /s/
 
-Sitemap: /sitemap.xml
+Sitemap: https://birthdaymessage.cc.cd/sitemap.xml

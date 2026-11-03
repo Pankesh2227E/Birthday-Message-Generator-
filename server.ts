@@ -19,7 +19,16 @@ cloudinaryService.configure();
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = Number(process.env.PORT) || 3000;
+
+  function getOrigin(req: express.Request): string {
+    const forwardedProto = (req.headers['x-forwarded-proto'] as string)?.split(',')[0]?.trim();
+    const host = req.get('host') || 'birthdaymessage.cc.cd';
+    const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+    const protocol = forwardedProto || (isLocal ? req.protocol : 'https');
+    return `${protocol}://${host}`;
+  }
 
   // Ensure local uploads directory exists and is served statically
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -84,6 +93,7 @@ async function startServer() {
 
   // Simple image upload for the wizard
   app.post('/api/upload', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
     upload.single('file')(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
@@ -91,11 +101,12 @@ async function startServer() {
         }
         return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
       } else if (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: err.message || 'Upload middleware error' });
       }
       next();
     });
   }, async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
     console.log('[UPLOAD] Request started');
     try {
       if (!req.file) {
@@ -120,28 +131,25 @@ async function startServer() {
       const MAX_BYTES = 300 * 1024; // 300 KB limit
       let bufferToUpload = req.file.buffer;
 
-      // Always normalize through Sharp (handles HEIC, large camera photos, auto-orients EXIF, and compresses to <= 300KB JPEG)
+      // Always normalize through Sharp (handles HEIC, large camera photos, auto-orients EXIF, and compresses safely)
       const isGif = req.file.mimetype === 'image/gif' || (req.file.originalname && req.file.originalname.toLowerCase().endsWith('.gif'));
       if (!isGif) {
         try {
           console.log(`[COMPRESSOR] Processing ${req.file.originalname} (${req.file.size} bytes)...`);
-          let quality = 82;
           let compressed = await sharp(req.file.buffer)
             .rotate() // Auto-orient based on camera EXIF orientation
             .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality, mozjpeg: true })
+            .jpeg({ quality: 80 })
             .toBuffer();
 
-          while (compressed.length > MAX_BYTES && quality > 25) {
-            quality -= 15;
-            compressed = await sharp(req.file.buffer)
-              .rotate()
-              .resize(1440, 1440, { fit: 'inside', withoutEnlargement: true })
-              .jpeg({ quality, mozjpeg: true })
+          if (compressed.length > MAX_BYTES) {
+            compressed = await sharp(compressed)
+              .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+              .jpeg({ quality: 70 })
               .toBuffer();
           }
 
-          console.log(`[COMPRESSOR] Success: ${req.file.size}B -> ${compressed.length}B (quality ${quality})`);
+          console.log(`[COMPRESSOR] Success: ${req.file.size}B -> ${compressed.length}B`);
           bufferToUpload = compressed;
         } catch (compErr: any) {
           console.warn('[COMPRESSOR] Sharp processing warning, falling back to original buffer:', compErr.message);
@@ -153,11 +161,11 @@ async function startServer() {
       let imageUrl: string | null = null;
       let finalPublicId = publicId;
 
-      // 1. Try Cloudinary upload if configured
+      // 1. Try Cloudinary upload if configured (with 5-second timeout in uploadBuffer)
       try {
         if (process.env.CLOUDINARY_API_SECRET && process.env.CLOUDINARY_CLOUD_NAME) {
           console.log(`[UPLOAD] HANDOFF: Passing buffer to Cloudinary service (${bufferToUpload.length} bytes)`);
-          const result = await cloudinaryService.uploadBuffer(bufferToUpload, publicId);
+          const result = await cloudinaryService.uploadBuffer(bufferToUpload, publicId, 5000);
           if (result && result.secure_url) {
             imageUrl = result.secure_url;
             finalPublicId = result.public_id;
@@ -182,14 +190,14 @@ async function startServer() {
         console.log(`[UPLOAD] Stored locally as fallback: ${imageUrl}`);
       }
 
-      res.json({ 
+      return res.status(200).json({ 
         success: true, 
         url: imageUrl, 
         publicId: finalPublicId 
       });
     } catch (error: any) {
       console.error(`[UPLOAD] Error in pipeline: ${error.message}`);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         success: false, 
         error: error.message || 'Internal server error during upload' 
       });
@@ -259,18 +267,25 @@ async function startServer() {
               intro: `A birthday celebration crafted with love for ${data.recipientName} ✨`,
               birthday_message: data.personalMessage.trim(),
               memory_captions: (data.memories || []).map((_: any, i: number) => `Cherished memory #${i + 1}`),
-              things_i_love: [
-                `Your contagious smile and positive energy`,
-                `Your unwavering loyalty and support`,
-                `Every single memory and adventure we share`
-              ],
+              things_i_love: Array.isArray(data.things_i_love) && data.things_i_love.filter((t: string) => t && t.trim().length > 0).length > 0
+                ? data.things_i_love.filter((t: string) => t && t.trim().length > 0)
+                : [
+                    `Your contagious smile and positive energy`,
+                    `Your unwavering loyalty and support`,
+                    `Every single memory and adventure we share`
+                  ],
               final_message: `Wishing you the happiest birthday! ❤️`
             };
           } else {
             // 2. OpenRouter: Generate AI content
             console.log(`[PIPELINE] Step 2: OpenRouter AI for ${surpriseId}`);
             await d1Service.updateSurprise(surpriseId, { ...initialData, progress: 'Writing something special...', stage: 2 });
-            aiContent = await openRouterService.generateBirthdayContent(data);
+            try {
+              aiContent = await openRouterService.generateBirthdayContent(data);
+            } catch (aiErr: any) {
+              console.warn(`[PIPELINE] AI generation error for ${surpriseId}:`, aiErr.message);
+              throw new Error('AI is unavailable at this time. Please write your birthday message manually or use any chatbot like Gemini or ChatGPT.');
+            }
           }
           
           // 3. Birthday Cake (User custom animated GIF)
@@ -278,7 +293,7 @@ async function startServer() {
           await d1Service.updateSurprise(surpriseId, { ...initialData, ...aiContent, progress: 'Preparing birthday cake...', stage: 3 });
           
           const OFFICIAL_CAKE_GIF = 'https://res.cloudinary.com/zxgbxh38/image/upload/w_400,c_scale,fl_lossy/v1791811363/birthday_surprise/official_user_birthday_cake.gif';
-          let resolvedCakeUrl = OFFICIAL_CAKE_GIF;
+          let resolvedCakeUrl = data?.cakeUrl || OFFICIAL_CAKE_GIF;
           
           // 4. Finalizing Cake
           console.log(`[PIPELINE] Step 4: Finalizing Cake for ${surpriseId}`);
@@ -304,13 +319,28 @@ async function startServer() {
             })
           );
 
+          const customThings = Array.isArray(data.things_i_love) && data.things_i_love.filter((t: string) => t && t.trim().length > 0).length > 0
+            ? data.things_i_love.filter((t: string) => t && t.trim().length > 0)
+            : (aiContent.things_i_love || [
+                `Your contagious smile and positive energy`,
+                `Your unwavering loyalty and support`,
+                `Every single memory and adventure we share`
+              ]);
+
+          const finalMemories = uploadedMemories.map((m: any, idx: number) => ({
+            ...m,
+            caption: m.caption?.trim() || aiContent.memory_captions?.[idx] || undefined,
+            hiddenMessage: m.hiddenMessage?.trim() || undefined
+          }));
+
           // 6. Update D1 with final content
           console.log(`[PIPELINE] Step 6: Final Update for ${surpriseId}`);
           const finalData = {
             ...data,
             ...aiContent,
+            things_i_love: customThings,
             cakeUrl: resolvedCakeUrl,
-            memories: uploadedMemories,
+            memories: finalMemories,
             expires_at: expiresAt,
             status: 'ready',
             progress: 'Ready!',
@@ -321,10 +351,13 @@ async function startServer() {
           console.log(`[PIPELINE] COMPLETE for ${surpriseId}`);
         } catch (error: any) {
           console.error(`[PIPELINE] ASYNC FAILED for ${surpriseId}:`, error);
+          const userFacingError = error.message?.includes('AI is unavailable')
+            ? error.message
+            : 'AI is unavailable at this time. Please write your birthday message manually or use any chatbot like Gemini or ChatGPT.';
           await d1Service.updateSurprise(surpriseId, { 
             status: 'failed', 
-            error: error.message,
-            progress: `Error: ${error.message}`
+            error: userFacingError,
+            progress: userFacingError
           });
         }
       })();
@@ -361,25 +394,25 @@ async function startServer() {
 
   // --- Multi-Page Application (MPA) Routes for SEO, Google Search Console, and AdSense ---
   app.get('/privacy-policy', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(renderPrivacyPolicyPage(origin));
   });
 
   app.get('/terms-and-conditions', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(renderTermsPage(origin));
   });
 
   app.get('/about-us', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(renderAboutPage(origin));
   });
 
   app.get('/contact-us', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(renderContactPage(origin));
   });
@@ -390,13 +423,13 @@ async function startServer() {
   });
 
   app.get('/sitemap.xml', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.send(renderSitemapXml(origin));
   });
 
   app.get('/robots.txt', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = getOrigin(req);
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.send(renderRobotsTxt(origin));
   });
@@ -421,6 +454,9 @@ async function startServer() {
       setHeaders: (res, filePath) => {
         if (filePath.match(/\.(webp|png|jpe?g|gif|svg|woff2?|ico)$/i)) {
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (filePath.endsWith('.webmanifest')) {
+          res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
         }
       }
     }));

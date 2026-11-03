@@ -12,6 +12,8 @@ export interface Memory {
   id: string;
   url: string;
   caption?: string;
+  hiddenMessage?: string;
+  publicId?: string;
 }
 
 export interface SurpriseData {

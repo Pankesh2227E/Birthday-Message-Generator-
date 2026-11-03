@@ -22,34 +22,53 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen flex flex-col items-center justify-center text-center px-6 space-y-12"
+      className="relative min-h-screen w-full flex items-center justify-center text-center px-4 overflow-hidden bg-cover bg-center select-none"
+      style={{ backgroundImage: `url('/intro-bg.webp')` }}
     >
-      <div className="absolute inset-0 cinematic-gradient -z-10" />
-      <motion.p 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 0.6, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-xs uppercase tracking-[0.3em] font-semibold text-white/60"
-      >
-        {intro || "A little surprise awaits..."}
-      </motion.p>
-      <motion.h1 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1, duration: 1 }}
-        className="text-5xl md:text-7xl font-serif leading-tight"
-      >
-        {name},<br />this is for you. <span className="text-primary italic">❤️</span>
-      </motion.h1>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-      >
-        <Button onClick={onNext} className="flex items-center gap-3">
-          Open Your Surprise 🎁
-        </Button>
-      </motion.div>
+      {/* Subtle vignette for edge richness */}
+      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+
+      {/* Content precisely positioned over the central parchment paper area */}
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto py-10 px-4 sm:px-6 flex flex-col items-center justify-center">
+        <motion.p 
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 0.85, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="text-[11px] sm:text-xs uppercase tracking-[0.22em] font-semibold text-[#5a3a24] mb-3 sm:mb-4 drop-shadow-sm font-sans"
+        >
+          {intro || `A birthday celebration crafted with love for ${name} ✨`}
+        </motion.p>
+        
+        <motion.h1 
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-4xl sm:text-5xl md:text-6xl font-serif leading-[1.12] text-[#24110d] tracking-tight mb-8 sm:mb-10"
+        >
+          {name},<br />
+          <span className="italic font-normal">this is for you.</span>{' '}
+          <span className="text-rose-600 inline-block drop-shadow-sm">❤️</span>
+        </motion.h1>
+
+        {/* iPhone Style Glass Screen Transparent Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.6, duration: 0.6 }}
+        >
+          <button 
+            onClick={onNext}
+            className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-base sm:text-lg font-semibold tracking-wide text-[#2b120c] backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_10px_30px_rgba(40,10,15,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-3 cursor-pointer"
+          >
+            {/* Specular glass reflection overlay */}
+            <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-80" />
+            <span className="relative z-10 flex items-center gap-2.5 font-medium">
+              <span>Open Your Surprise</span>
+              <span className="text-xl group-hover:scale-110 transition-transform">🎁</span>
+            </span>
+          </button>
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
@@ -177,8 +196,6 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           const img = e.currentTarget as HTMLImageElement;
           if (img.src.includes('.webp')) {
             img.src = '/cake-scene-bg.png';
-          } else {
-            img.src = '/assets/aistudio/IMG_2553_cb566ce9.png';
           }
         }}
         alt="Birthday Room Background"
@@ -197,13 +214,17 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
             transition={{ duration: 0.6 }}
             className="flex flex-col items-center space-y-3"
           >
-            <Button 
+            <button 
               onClick={() => setLit(true)} 
-              className="shadow-[0_12px_35px_rgba(217,70,239,0.45)] px-8 py-4 rounded-full text-sm sm:text-base font-semibold bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white transition-all transform hover:scale-105 flex items-center gap-2.5 border border-white/40 cursor-pointer"
+              className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-sm sm:text-base font-semibold tracking-wide text-rose-950 backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_12px_35px_rgba(180,30,80,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center gap-3 cursor-pointer"
             >
-              <span className="text-xl animate-pulse">🕯️</span>
-              <span>Light the Candle</span>
-            </Button>
+              {/* Specular glass reflection overlay */}
+              <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-90" />
+              <span className="relative z-10 flex items-center gap-2.5">
+                <span className="text-xl animate-pulse group-hover:scale-110 transition-transform">🕯️</span>
+                <span className="font-semibold text-stone-900 tracking-wide">Light the Candle</span>
+              </span>
+            </button>
             <p className="text-xs text-rose-900/70 font-serif italic tracking-wide">
               Tap to light the birthday candles ✨
             </p>
@@ -261,58 +282,79 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           )}
         </AnimatePresence>
 
-        <div className="relative w-48 sm:w-54 md:w-60 flex items-end justify-center">
-          <AnimatePresence mode="wait">
-            {!lit ? (
-              // Static Cake on pedestal stand resting on the table
-              <motion.div
-                key="static-cake"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full flex items-end justify-center"
-              >
-                <img
-                  src={CAKE_STATIC_PNG}
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    if (img.src.includes('.webp')) {
-                      img.src = '/cake-static.png';
-                    } else {
-                      img.src = '/assets/aistudio/IMG_2560_1e39382d.png';
-                    }
-                  }}
-                  alt="Birthday Cake on Stand"
-                  className="w-full h-auto object-contain filter drop-shadow-[0_16px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
-                />
-              </motion.div>
-            ) : (
-              // Replaced with cropped cake GIF/WebP with blinking candle flames (exact same dimensions and stool alignment)
-              <motion.div
-                key="lit-cake"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="w-full flex items-end justify-center"
-              >
-                <img
-                  src={CAKE_LIT_GIF}
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    if (img.src.includes('.webp')) {
-                      img.src = '/cake-lit-cropped.gif';
-                    } else {
-                      img.src = '/cake-lit.gif';
-                    }
-                  }}
-                  alt="Celebration Birthday Cake with Lit Candle"
-                  className="w-full h-auto object-contain filter drop-shadow-[0_18px_30px_rgba(217,70,239,0.35)] select-none pointer-events-none"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {/* Dynamic Cake rendering based on creator choice */}
+        {(() => {
+          const isPinkCake = Boolean(
+            data?.cakeUrl && (
+              data.cakeUrl.includes('celebration-pink') || 
+              data.cakeUrl.includes('IMG-2620') ||
+              data.cakeUrl.includes('cake-option-2')
+            )
+          );
+          const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.webp' : CAKE_STATIC_PNG;
+          const litCakeSrc = isPinkCake ? (data.cakeUrl || '/cake-celebration-pink-lit.webp') : CAKE_LIT_GIF;
+
+          return (
+            <div className="relative w-48 sm:w-54 md:w-60 flex items-end justify-center">
+              <AnimatePresence mode="wait">
+                {!lit ? (
+                  // Static Cake on pedestal stand resting on the table
+                  <motion.div
+                    key="static-cake"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full flex items-end justify-center"
+                  >
+                    <img
+                      src={staticCakeSrc}
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        if (isPinkCake) {
+                          img.src = '/cake-celebration-pink.png';
+                        } else if (img.src.includes('.webp')) {
+                          img.src = '/cake-static.png';
+                        }
+                      }}
+                      alt="Birthday Cake on Stand"
+                      className="w-full h-auto object-contain filter drop-shadow-[0_16px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
+                    />
+                  </motion.div>
+                ) : (
+                  // Lit animated cake with flickering candles and warm celebration glow
+                  <motion.div
+                    key="lit-cake"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full flex items-end justify-center"
+                  >
+                    <img
+                      src={litCakeSrc}
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        if (isPinkCake) {
+                          if (img.src.includes('-lit.webp')) {
+                            img.src = '/cake-celebration-pink.gif';
+                          } else {
+                            img.src = 'https://i.postimg.cc/nV5BPHSS/IMG-2620.gif';
+                          }
+                        } else if (img.src.includes('.webp')) {
+                          img.src = '/cake-lit-cropped.gif';
+                        } else {
+                          img.src = '/cake-lit.gif';
+                        }
+                      }}
+                      alt="Celebration Birthday Cake with Lit Candle"
+                      className="w-full h-auto object-contain filter drop-shadow-[0_18px_30px_rgba(217,70,239,0.35)] select-none pointer-events-none"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Bottom continuation button when lit */}
@@ -431,6 +473,128 @@ const PHOTO_POSITIONS = [
 
 const PHOTO_ROTATIONS = [-5, 4, -3, 6, -4];
 
+interface PolaroidCardProps {
+  memory: any;
+  idx: number;
+  data: SurpriseData;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  currentZ: number;
+  bringToFront: (id: string | number) => void;
+  key?: React.Key;
+}
+
+// --- 3D Flippable Polaroid Card Component ---
+const PolaroidCard: React.FC<PolaroidCardProps> = ({
+  memory,
+  idx,
+  data,
+  containerRef,
+  currentZ,
+  bringToFront
+}) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const id = memory.id || `photo_${idx}`;
+  const rotation = PHOTO_ROTATIONS[idx % PHOTO_ROTATIONS.length];
+  const positionClass = PHOTO_POSITIONS[idx % PHOTO_POSITIONS.length];
+  const caption = memory.caption || data.memory_captions?.[idx] || DEFAULT_CAPTIONS[idx % DEFAULT_CAPTIONS.length];
+  const hiddenMessage = memory.hiddenMessage;
+
+  return (
+    <motion.div
+      drag
+      dragConstraints={containerRef}
+      dragElastic={0.15}
+      onPointerDown={() => bringToFront(id)}
+      style={{ zIndex: currentZ, perspective: 1000 }}
+      initial={{ opacity: 0, scale: 0.8, rotate: rotation }}
+      animate={{ 
+        opacity: 1, 
+        scale: 1, 
+        rotate: rotation,
+        y: [0, -7, 0],
+      }}
+      transition={{
+        opacity: { duration: 0.5, delay: idx * 0.1 },
+        scale: { duration: 0.5, delay: idx * 0.1 },
+        y: { duration: 3.4 + (idx % 3) * 0.7, repeat: Infinity, ease: 'easeInOut' }
+      }}
+      whileHover={{ scale: 1.04, cursor: 'grab' }}
+      whileDrag={{ scale: 1.08, cursor: 'grabbing', zIndex: 999 }}
+      className={`absolute ${positionClass} w-44 sm:w-52 md:w-60 lg:w-64 max-w-[85vw] select-none touch-none`}
+    >
+      {/* Cute Washi Tape at top */}
+      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-3.5 bg-rose-200/80 backdrop-blur-[1px] rotate-[-2deg] rounded-[1px] shadow-sm border border-white/60 pointer-events-none z-30" />
+
+      {/* 3D Flipping Card Container */}
+      <motion.div
+        onTap={() => setIsFlipped(f => !f)}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+        style={{ transformStyle: 'preserve-3d' }}
+        className="relative w-full rounded-sm shadow-[0_15px_35px_rgba(0,0,0,0.18)] hover:shadow-[0_22px_50px_rgba(0,0,0,0.26)] transition-shadow cursor-pointer"
+      >
+        {/* FRONT FACE (The Polaroid Photo & Caption) */}
+        <div 
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+          className="w-full bg-white p-2 sm:p-2.5 pb-3 sm:pb-3.5 rounded-sm"
+        >
+          {/* Photo inside white Polaroid frame - displays natural uncropped proportions */}
+          <div className="w-full overflow-hidden rounded-[2px] bg-stone-100/50 pointer-events-none border border-black/5 flex items-center justify-center">
+            <img 
+              src={memory.url} 
+              alt={caption} 
+              className="w-full h-auto max-h-[50vh] object-contain block select-none pointer-events-none"
+              draggable={false}
+            />
+          </div>
+
+          {/* Handwritten style caption */}
+          <p className="pt-2 sm:pt-2.5 text-center text-xs sm:text-sm font-serif font-medium text-stone-700 tracking-wide select-none truncate px-1">
+            {caption}
+          </p>
+
+          {/* Subtle tap to flip prompt */}
+          <div className="pt-1 flex items-center justify-center gap-1 text-[9px] sm:text-[10px] text-stone-400 font-sans tracking-wide">
+            <span>💌 Tap to flip</span>
+          </div>
+        </div>
+
+        {/* BACK FACE (Hidden Message revealed in 3D flip!) */}
+        <div 
+          style={{ 
+            backfaceVisibility: 'hidden', 
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)' 
+          }}
+          className="absolute inset-0 w-full h-full bg-[#fdfbf7] p-3 sm:p-4 rounded-sm border border-stone-200/80 flex flex-col justify-between shadow-inner"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-stone-200/70 pb-1.5 sm:pb-2">
+            <span className="text-[10px] sm:text-[11px] font-sans uppercase tracking-[0.16em] font-bold text-[#881337]">
+              Secret Note 💌
+            </span>
+            <span className="text-xs sm:text-sm">❤️</span>
+          </div>
+
+          {/* Hidden Message */}
+          <div className="my-auto py-2 px-1 text-center overflow-y-auto max-h-[40vh]">
+            <p className="font-serif italic text-stone-800 text-xs sm:text-sm md:text-base leading-relaxed">
+              "{hiddenMessage || `A cherished memory with you, ${data.recipientName} ✨ You bring endless light and happiness into my life.`}"
+            </p>
+          </div>
+
+          {/* Flip back instruction */}
+          <div className="pt-1.5 sm:pt-2 border-t border-stone-200/70 text-center">
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-stone-400 font-sans font-medium">
+              (Tap to flip back)
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const GalleryView = ({ memories, data, onNext }: { memories: any[], data: SurpriseData, onNext: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zIndices, setZIndices] = useState<{ [key: string]: number }>({});
@@ -458,8 +622,6 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
           const img = e.currentTarget as HTMLImageElement;
           if (img.src.includes('.webp')) {
             img.src = '/gallery-bg.png';
-          } else {
-            img.src = '/assets/aistudio/IMG_2548_d3fb419c.png';
           }
         }}
         alt="Floral watercolor background"
@@ -514,7 +676,7 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
           Some Sweet Moments 📸
         </h2>
         <p className="text-xs sm:text-sm text-[#8a424e]/85 font-sans mt-0.5 font-medium">
-          Drag photos around to explore your memories ✨
+          Drag photos & tap any photo to reveal its secret message ✨
         </p>
       </header>
 
@@ -526,64 +688,37 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
         {photoList.map((memory: any, idx: number) => {
           const id = memory.id || `photo_${idx}`;
           const currentZ = zIndices[id] || (idx + 5);
-          const rotation = PHOTO_ROTATIONS[idx % PHOTO_ROTATIONS.length];
-          const positionClass = PHOTO_POSITIONS[idx % PHOTO_POSITIONS.length];
-          const caption = memory.caption || data.memory_captions?.[idx] || DEFAULT_CAPTIONS[idx % DEFAULT_CAPTIONS.length];
 
           return (
-            <motion.div
+            <PolaroidCard
               key={id}
-              drag
-              dragConstraints={containerRef}
-              dragElastic={0.15}
-              onPointerDown={() => bringToFront(id)}
-              style={{ zIndex: currentZ }}
-              initial={{ opacity: 0, scale: 0.8, rotate: rotation }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1, 
-                rotate: rotation,
-                y: [0, -7, 0],
-              }}
-              transition={{
-                opacity: { duration: 0.5, delay: idx * 0.1 },
-                scale: { duration: 0.5, delay: idx * 0.1 },
-                y: { duration: 3.4 + (idx % 3) * 0.7, repeat: Infinity, ease: 'easeInOut' }
-              }}
-              whileHover={{ scale: 1.05, cursor: 'grab' }}
-              whileDrag={{ scale: 1.1, cursor: 'grabbing', zIndex: 999 }}
-              className={`absolute ${positionClass} w-44 sm:w-52 md:w-60 lg:w-64 max-w-[85vw] bg-white p-2 sm:p-2.5 pb-4 sm:pb-5 rounded-sm shadow-[0_15px_35px_rgba(0,0,0,0.18)] hover:shadow-[0_22px_50px_rgba(0,0,0,0.26)] transition-shadow cursor-grab select-none touch-none`}
-            >
-              {/* Cute Washi Tape at top */}
-              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-3.5 bg-rose-200/80 backdrop-blur-[1px] rotate-[-2deg] rounded-[1px] shadow-sm border border-white/60 pointer-events-none" />
-
-              {/* Photo inside white Polaroid frame - displays natural uncropped proportions with adaptive border */}
-              <div className="w-full overflow-hidden rounded-[2px] bg-stone-100/50 pointer-events-none border border-black/5 flex items-center justify-center">
-                <img 
-                  src={memory.url} 
-                  alt={caption} 
-                  className="w-full h-auto max-h-[52vh] object-contain block select-none pointer-events-none"
-                  draggable={false}
-                />
-              </div>
-
-              {/* Handwritten style caption */}
-              <p className="pt-2 sm:pt-2.5 text-center text-xs sm:text-sm font-serif font-medium text-stone-700 tracking-wide select-none truncate px-1">
-                {caption}
-              </p>
-            </motion.div>
+              memory={memory}
+              idx={idx}
+              data={data}
+              containerRef={containerRef}
+              currentZ={currentZ}
+              bringToFront={bringToFront}
+            />
           );
         })}
       </div>
 
-      {/* Floating Continue / Next Button */}
-      <div className="absolute bottom-5 sm:bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-auto">
-        <Button 
+      {/* Floating Continue Button in iPhone glass skin style */}
+      <div className="absolute bottom-5 sm:bottom-7 left-0 right-0 z-40 flex justify-center px-4 pointer-events-auto">
+        <button 
           onClick={onNext}
-          className="shadow-[0_10px_30px_rgba(136,19,55,0.35)] px-6 sm:px-8 py-3 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20"
+          className="group relative px-8 sm:px-10 py-3 sm:py-3.5 rounded-full font-medium text-xs sm:text-sm tracking-wide text-white/95 transition-all duration-300 ease-out active:scale-95 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:shadow-[0_12px_40px_0_rgba(255,255,255,0.25)] border border-white/35 hover:border-white/60 bg-white/15 hover:bg-white/25 backdrop-blur-md overflow-hidden flex items-center gap-2"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+          }}
         >
-          Continue to 3 Things I Love →
-        </Button>
+          <span className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/35 to-transparent rounded-t-full pointer-events-none" />
+          <span className="relative z-10 font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+            Continue →
+          </span>
+        </button>
       </div>
     </motion.div>
   );
@@ -890,14 +1025,11 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center p-4 sm:p-6 select-none"
+      className="relative min-h-screen w-full overflow-y-auto flex flex-col items-center justify-center p-4 sm:p-6 select-none"
     >
-      {/* Background Image: IMG_2561 textured watercolor paper with lotus flowers */}
+      {/* Background Image: textured watercolor paper with lotus flowers */}
       <img
         src={THINGS_I_LOVE_BG}
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/assets/aistudio/IMG_2561_b377b9e1.jpeg';
-        }}
         alt="Textured parchment with lotus"
         className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
       />
@@ -924,7 +1056,7 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-3xl sm:text-4xl md:text-5xl font-serif font-extrabold text-[#781b2c] tracking-tight drop-shadow-sm"
           >
-            3 Things I Love About You
+            Things I Love About You
           </motion.h2>
 
           <motion.p
@@ -937,15 +1069,15 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
           </motion.p>
         </div>
 
-        {/* 3 Animated Reason Cards */}
+        {/* Animated Reason Cards */}
         <div className="w-full space-y-4 sm:space-y-5">
-          {items.slice(0, 3).map((thing, i) => (
+          {items.map((thing, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, x: -35, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ 
-                delay: 0.5 + i * 0.35, 
+                delay: 0.4 + i * 0.2, 
                 duration: 0.7, 
                 ease: [0.16, 1, 0.3, 1] 
               }}

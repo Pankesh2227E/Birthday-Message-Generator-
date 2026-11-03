@@ -30,6 +30,8 @@ export default function App() {
   const [view, setView] = useState<AppView>('LANDING');
   const [surpriseData, setSurpriseData] = useState<SurpriseData | null>(null);
 
+  const [creatorData, setCreatorData] = useState<Partial<SurpriseData> | null>(null);
+  const [builderStep, setBuilderStep] = useState<number>(1);
   const [surpriseId, setSurpriseId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +66,7 @@ export default function App() {
   }, []);
 
   const handleCreateComplete = async (data: SurpriseData) => {
+    setCreatorData(data);
     setView('GENERATING');
     setError(null);
     setSurpriseData(null); // Reset for new generation
@@ -90,9 +93,7 @@ export default function App() {
           if (!res.ok) throw new Error('Failed to fetch status');
           const finalData = await res.json();
           
-          // Update data so Generation component can show progress if we add it
           setSurpriseData(prev => {
-            // Only update if it's actually different or ready
             if (finalData.status === 'ready') return finalData;
             return { ...prev, ...finalData };
           });
@@ -101,8 +102,8 @@ export default function App() {
             clearInterval(poll);
           } else if (finalData.status === 'failed') {
             clearInterval(poll);
-            setError(finalData.error || 'Generation failed');
-            setView('BUILDER');
+            setError(finalData.error || 'AI is unavailable at this time. Please write your birthday message manually or use any chatbot like Gemini or ChatGPT.');
+            setSurpriseData(finalData);
           }
         } catch (err) {
           console.error('Polling error', err);
@@ -111,7 +112,8 @@ export default function App() {
 
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      setError(err.message || 'AI is unavailable at this time. Please write your birthday message manually or use any chatbot like Gemini or ChatGPT.');
+      setBuilderStep(8);
       setView('BUILDER');
     }
   };
@@ -120,19 +122,26 @@ export default function App() {
 
   if (view === 'BUILDER') {
     return (
-      <>
-        {error && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-red-500/90 text-white px-6 py-3 rounded-xl border border-red-400 backdrop-blur-md shadow-2xl">
-            {error}
-          </div>
-        )}
-        <Wizard onComplete={handleCreateComplete} />
-      </>
+      <Wizard 
+        onComplete={handleCreateComplete} 
+        initialData={creatorData}
+        initialStep={builderStep}
+        aiErrorMessage={error}
+      />
     );
   }
 
   if (view === 'GENERATING') {
-    return <Generation data={surpriseData} onComplete={() => setView('RECIPIENT_PREVIEW')} />;
+    return (
+      <Generation 
+        data={surpriseData} 
+        onComplete={() => setView('RECIPIENT_PREVIEW')} 
+        onWriteManually={() => {
+          setBuilderStep(8);
+          setView('BUILDER');
+        }}
+      />
+    );
   }
 
   if (view === 'EXPIRED') {

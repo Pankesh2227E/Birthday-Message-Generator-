@@ -44,7 +44,7 @@ export const cloudinaryService = {
     }
   },
 
-  async uploadBuffer(buffer: Buffer, publicId: string): Promise<any> {
+  async uploadBuffer(buffer: Buffer, publicId: string, timeoutMs = 5000): Promise<any> {
     if (!process.env.CLOUDINARY_API_SECRET) {
       throw new Error('Cloudinary configuration is missing');
     }
@@ -52,14 +52,27 @@ export const cloudinaryService = {
     console.log(`[CLOUDINARY] UPLOAD_BUFFER START: ${publicId} (${buffer.length} bytes)`);
 
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          console.warn(`[CLOUDINARY] uploadBuffer timed out after ${timeoutMs}ms for ${publicId}. Triggering fallback.`);
+          reject(new Error(`Cloudinary upload timed out after ${timeoutMs}ms`));
+        }
+      }, timeoutMs);
+
       try {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             public_id: publicId,
             folder: 'birthday_surprise',
-            resource_type: 'image'
+            resource_type: 'image',
+            timeout: timeoutMs
           },
           (error, result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
             if (error) {
               console.error(`[CLOUDINARY] UPLOAD_BUFFER CALLBACK ERROR: ${error.message}`);
               reject(new Error(`Cloudinary buffer upload failed: ${error.message}`));
@@ -74,6 +87,9 @@ export const cloudinaryService = {
         );
 
         uploadStream.on('error', (error) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
           console.error(`[CLOUDINARY] STREAM ERROR: ${error.message}`);
           reject(new Error(`Stream error: ${error.message}`));
         });
@@ -81,6 +97,9 @@ export const cloudinaryService = {
         console.log('[CLOUDINARY] Pushing buffer to stream...');
         uploadStream.end(buffer);
       } catch (err: any) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         console.error(`[CLOUDINARY] CATCH ERROR in uploadBuffer: ${err.message}`);
         reject(err);
       }

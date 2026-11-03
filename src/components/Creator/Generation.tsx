@@ -11,7 +11,15 @@ const STAGES = [
   { text: "Adding the finishing touches...", icon: Gift },
 ];
 
-export const Generation = ({ onComplete, data }: { onComplete: () => void, data: any }) => {
+export const Generation = ({ 
+  onComplete, 
+  data, 
+  onWriteManually 
+}: { 
+  onComplete: () => void, 
+  data: any, 
+  onWriteManually?: () => void 
+}) => {
   const isReady = data?.status === 'ready';
   const progress = data?.progress || "Gathering your memories...";
   const stage = data?.stage || 0;
@@ -26,45 +34,60 @@ export const Generation = ({ onComplete, data }: { onComplete: () => void, data:
       <AnimatePresence mode="wait">
         {!isReady ? (
           <motion.div
-            key={stage}
+            key={isFailed ? 'failed' : stage}
             initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-            transition={{ duration: 1 }}
-            className="space-y-12"
+            transition={{ duration: 0.8 }}
+            className="space-y-8 max-w-md mx-auto"
           >
-            <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-full" 
-              />
-              {isFailed ? (
-                <div className="text-red-500 text-4xl">✕</div>
-              ) : (
-                <CurrentIcon className="text-primary" size={48} />
-              )}
-            </div>
-            <div className="space-y-4">
-              <h2 className={`text-2xl font-serif tracking-wide ${isFailed ? 'text-red-400' : ''}`}>
-                {isFailed ? `Generation failed: ${data.error}` : progress}
-              </h2>
-              {!isFailed && (
-                <div className="flex justify-center gap-1">
-                  {STAGES.map((_, i) => (
-                    <div 
-                      key={i} 
-                      className={`h-1 w-8 rounded-full transition-all duration-500 ${i < stage ? 'bg-primary' : 'bg-white/10'}`} 
-                    />
-                  ))}
+            {isFailed ? (
+              <div className="p-6 sm:p-8 rounded-3xl bg-white/[0.04] border border-amber-500/30 text-center space-y-5 shadow-2xl backdrop-blur-xl">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-3xl mx-auto shadow-inner text-amber-300">
+                  ✍️
                 </div>
-              )}
-              {isFailed && (
-                <Button onClick={() => window.location.reload()} variant="secondary" className="mt-8">
-                  Try Again
-                </Button>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-serif text-white font-bold tracking-tight">
+                    AI is unavailable at this time
+                  </h2>
+                  <p className="text-sm text-white/70 leading-relaxed">
+                    Please write your birthday message manually or use any chatbot like Gemini or ChatGPT to generate one, then paste it in.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Button 
+                    onClick={onWriteManually || (() => window.location.reload())} 
+                    className="w-full py-3.5 rounded-xl font-semibold shadow-lg cursor-pointer"
+                  >
+                    Write Birthday Message Manually ✍️
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-full" 
+                  />
+                  <CurrentIcon className="text-primary" size={48} />
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-serif tracking-wide text-white">
+                    {progress}
+                  </h2>
+                  <div className="flex justify-center gap-1">
+                    {STAGES.map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={`h-1 w-8 rounded-full transition-all duration-500 ${i < stage ? 'bg-primary' : 'bg-white/10'}`} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </motion.div>
         ) : (
           <motion.div

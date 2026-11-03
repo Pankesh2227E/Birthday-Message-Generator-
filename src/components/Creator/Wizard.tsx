@@ -71,10 +71,17 @@ const INTERESTS_LIST = [
 export const CAKE_OPTIONS = [
   {
     id: 'user-cake-gif',
-    name: 'Your Birthday Cake (Animated GIF)',
+    name: 'Sparkler Birthday Cake',
     url: 'https://res.cloudinary.com/zxgbxh38/image/upload/w_400,c_scale,fl_lossy/v1791811363/birthday_surprise/official_user_birthday_cake.gif',
     thumbnail: 'https://res.cloudinary.com/zxgbxh38/image/upload/w_200,c_scale,fl_lossy/v1791811363/birthday_surprise/official_user_birthday_cake.gif',
-    type: 'gif'
+    type: 'cake'
+  },
+  {
+    id: 'pink-celebration-cake',
+    name: 'Pink Berry Candle Cake',
+    url: '/cake-celebration-pink-lit.webp',
+    thumbnail: '/cake-celebration-pink.webp',
+    type: 'cake'
   }
 ];
 
@@ -85,11 +92,40 @@ const STEPS = [
   { id: '04', title: 'Personality' },
   { id: '05', title: 'Things they love' },
   { id: '06', title: 'Photos' },
-  { id: '07', title: 'Final touches' },
+  { id: '07', title: 'Things I love about you' },
+  { id: '08', title: 'Final touches' },
 ];
 
-export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => void }) => {
-  const [step, setStep] = useState(1);
+const getDefaultThingsILove = (d: Partial<SurpriseData>): string[] => {
+  const interests = d.interests ? d.interests.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const personalities = d.personality ? d.personality.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  let reason1 = 'Your contagious smile and positive energy that lights up every room';
+  if (personalities.length > 0) {
+    reason1 = `Your ${personalities[0].toLowerCase()} spirit and the genuine warmth you bring everywhere`;
+  }
+
+  let reason2 = 'Your unwavering loyalty, care, and the way you always support me';
+  if (interests.length > 0) {
+    reason2 = `Your endless passion for ${interests.slice(0, 2).join(' & ')} and how inspiring you are`;
+  } else if (personalities.length > 1) {
+    reason2 = `How wonderfully ${personalities[1].toLowerCase()} and thoughtful you are`;
+  }
+
+  const reason3 = 'Every single memory, laugh, and adventure we share together';
+
+  return [reason1, reason2, reason3];
+};
+
+interface WizardProps {
+  onComplete: (data: SurpriseData) => void;
+  initialData?: Partial<SurpriseData> | null;
+  initialStep?: number;
+  aiErrorMessage?: string | null;
+}
+
+export const Wizard = ({ onComplete, initialData, initialStep, aiErrorMessage }: WizardProps) => {
+  const [step, setStep] = useState(initialStep || 1);
   const [data, setData] = useState<Partial<SurpriseData>>({
     recipientName: '',
     recipientAge: '',
@@ -100,8 +136,10 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
     favoriteMemory: '',
     personality: '',
     interests: '',
+    things_i_love: [],
     personalMessage: '',
-    memories: []
+    memories: [],
+    ...(initialData || {})
   });
 
   const [isUploading, setIsUploading] = useState(false);
@@ -122,6 +160,20 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
 
   const update = (fields: Partial<SurpriseData>) => setData(prev => ({ ...prev, ...fields }));
 
+  const updateMemoryCaption = (id: string, caption: string) => {
+    setData(prev => ({
+      ...prev,
+      memories: (prev.memories || []).map(m => m.id === id ? { ...m, caption } : m)
+    }));
+  };
+
+  const updateMemoryHiddenMessage = (id: string, hiddenMessage: string) => {
+    setData(prev => ({
+      ...prev,
+      memories: (prev.memories || []).map(m => m.id === id ? { ...m, hiddenMessage } : m)
+    }));
+  };
+
   const next = () => {
     // Sync current step data before moving
     if (step === 2) {
@@ -139,9 +191,13 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
         ints.push(customInterest.trim());
       }
       update({ interests: ints.join(', ') });
+    } else if (step === 6) {
+      if (!data.things_i_love || data.things_i_love.length === 0) {
+        update({ things_i_love: getDefaultThingsILove(data) });
+      }
     }
 
-    setStep(s => Math.min(s + 1, 7));
+    setStep(s => Math.min(s + 1, 8));
   };
 
   const skipStep = () => {
@@ -160,8 +216,12 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
       setSelectedInterests([]);
       setCustomInterest('');
       update({ interests: '' });
+    } else if (step === 7) {
+      if (!data.things_i_love || data.things_i_love.length === 0) {
+        update({ things_i_love: getDefaultThingsILove(data) });
+      }
     }
-    setStep(s => Math.min(s + 1, 7));
+    setStep(s => Math.min(s + 1, 8));
   };
 
   const back = () => setStep(s => Math.max(s - 1, 1));
@@ -223,28 +283,53 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
         formData.append('file', fileToUpload, safeFilename);
         formData.append('publicId', `mem_${Date.now()}_${Math.random().toString(36).substring(7)}`);
 
+        let uploadedUrl: string | null = null;
+        let uploadedPublicId: string | undefined = undefined;
+
         try {
           const res = await fetch('/api/upload', {
             method: 'POST',
             body: formData
           });
 
-          const contentType = res.headers.get('content-type');
-          let result: any;
-          if (contentType && contentType.includes('application/json')) {
-            result = await res.json();
+          const contentType = res.headers.get('content-type') || '';
+          let result: any = null;
+          if (contentType.includes('application/json')) {
+            try {
+              result = await res.json();
+            } catch {
+              result = null;
+            }
+          }
+
+          if (res.ok && result?.success && result?.url) {
+            uploadedUrl = result.url;
+            uploadedPublicId = result.publicId;
           } else {
-            throw new Error('Server returned an invalid response format.');
+            console.warn(`[UPLOAD] Server returned non-JSON or status ${res.status}. Falling back to client-side storage for ${file.name}`);
           }
+        } catch (fetchErr: any) {
+          console.warn(`[UPLOAD] Network warning for ${file.name}:`, fetchErr?.message);
+        }
 
-          if (!res.ok) {
-            throw new Error(result.error || `Upload failed with status ${res.status}`);
+        // Resilient Fallback: If server upload returned non-JSON or was blocked by proxy, convert image directly to Data URL
+        if (!uploadedUrl) {
+          try {
+            console.log(`[UPLOAD] Activating local Data URL fallback for "${file.name}"`);
+            uploadedUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = () => reject(new Error('Failed to read image locally'));
+              reader.readAsDataURL(fileToUpload);
+            });
+          } catch (fallbackErr: any) {
+            console.error(`[UPLOAD] Fallback failed for ${file.name}:`, fallbackErr);
+            setUploadError(`Could not load "${file.name}". Please try another image.`);
+            continue;
           }
+        }
 
-          if (!result.url) {
-            throw new Error('Upload succeeded but no image URL was returned.');
-          }
-
+        if (uploadedUrl) {
           setData(prev => {
             const currentMemories = prev.memories || [];
             if (currentMemories.length >= 5) return prev;
@@ -252,14 +337,11 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
               ...prev,
               memories: [...currentMemories, {
                 id: Math.random().toString(36).substring(7),
-                url: result.url,
-                publicId: result.publicId
+                url: uploadedUrl!,
+                publicId: uploadedPublicId
               }]
             };
           });
-        } catch (innerErr: any) {
-          console.error(`[UPLOAD] Error uploading ${file.name}:`, innerErr);
-          setUploadError(`Could not upload "${file.name}": ${innerErr.message}`);
         }
       }
     } catch (err: any) {
@@ -302,7 +384,7 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
   const isPhotosValid = photoCount >= 3 && photoCount <= 5;
   const isStep1Valid = Boolean(data.recipientName?.trim()) && Boolean(data.recipientAge?.trim());
 
-  const isSkippableStep = [2, 3, 4, 5].includes(step);
+  const isSkippableStep = [2, 3, 4, 5, 7].includes(step);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-background text-white">
@@ -310,7 +392,7 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
       <header className="w-full max-w-2xl px-6 py-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-50 border-b border-white/5">
         <div className="flex flex-col gap-1">
           <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">
-            Step {currentStepInfo.id} of 07 — {currentStepInfo.title}
+            Step {currentStepInfo.id} of 08 — {currentStepInfo.title}
           </span>
           <h2 className="text-xs font-medium text-white/40">Personalized Birthday Journey</h2>
         </div>
@@ -319,7 +401,7 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
 
       <div className="w-full max-w-2xl px-6 pt-6 pb-36">
         <div className="mb-8">
-          <StepIndicator current={step} total={7} />
+          <StepIndicator current={step} total={8} />
         </div>
 
         <AnimatePresence mode="wait">
@@ -734,40 +816,74 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                 )}
 
                 {/* Photos Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <AnimatePresence>
                     {data.memories?.map((memory, idx) => (
                       <motion.div
                         key={memory.id}
                         layout
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="aspect-square relative group rounded-2xl overflow-hidden border border-white/10 bg-surface shadow-lg"
+                        className="rounded-2xl p-3.5 bg-white/[0.04] border border-white/10 shadow-lg space-y-3"
                       >
-                        <img 
-                          src={memory.url} 
-                          alt={`Memory ${idx + 1}`} 
-                          className="w-full h-full object-cover" 
-                        />
-                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-[10px] text-white/70 backdrop-blur-sm">
-                          Photo #{idx + 1}
+                        {/* Polaroid Card Frame (Reference sketch) */}
+                        <div className="bg-white p-2.5 sm:p-3 rounded-xl shadow-md border border-stone-200 text-stone-800 space-y-2.5">
+                          {/* Image preview */}
+                          <div className="aspect-[4/3] relative rounded-lg overflow-hidden bg-stone-100 flex items-center justify-center border border-stone-200/60">
+                            <img 
+                              src={memory.url} 
+                              alt={`Photo ${idx + 1}`} 
+                              className="w-full h-full object-cover" 
+                            />
+                            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-[10px] text-white/90 backdrop-blur-sm font-sans font-medium">
+                              Photo #{idx + 1}
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => removeMemory(memory.id)}
+                              className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-rose-600 text-white rounded-full transition-colors shadow-md"
+                              title="Remove photo"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+
+                          {/* Inside Polaroid bottom border: Photo Caption Input */}
+                          <div className="pt-0.5">
+                            <input 
+                              type="text"
+                              placeholder="Type here... (e.g. Cutie 🥹, My Love)"
+                              value={memory.caption || ''}
+                              onChange={e => updateMemoryCaption(memory.id, e.target.value)}
+                              className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-xs text-stone-800 placeholder:text-stone-400 font-serif font-medium focus:bg-white focus:border-rose-400 outline-none transition-all"
+                            />
+                          </div>
                         </div>
-                        <button 
-                          type="button"
-                          onClick={() => removeMemory(memory.id)}
-                          className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-opacity shadow-md"
-                          title="Remove photo"
-                        >
-                          <X size={14} />
-                        </button>
+
+                        {/* Just below Polaroid card: Type a hidden message box (Sketch) */}
+                        <div className="space-y-1.5 pt-0.5">
+                          <div className="flex items-center justify-between px-0.5">
+                            <label className="text-[11px] font-semibold text-rose-300 flex items-center gap-1 uppercase tracking-wider">
+                              <span>💌</span> Type a hidden message (optional)
+                            </label>
+                            <span className="text-[10px] text-white/40">Flips in 3D on tap</span>
+                          </div>
+                          <input 
+                            type="text"
+                            placeholder="Write a hidden secret note for this photo..."
+                            value={memory.hiddenMessage || ''}
+                            onChange={e => updateMemoryHiddenMessage(memory.id, e.target.value)}
+                            className="w-full bg-surface border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-white/30 focus:border-primary outline-none transition-all"
+                          />
+                        </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
 
                   {/* Add Photo Button (Visible only if under 5 photos) */}
                   {photoCount < 5 && (
-                    <label className={`aspect-square rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/40 hover:bg-primary/5 flex flex-col items-center justify-center gap-3 text-white/40 hover:text-white transition-all group cursor-pointer ${
+                    <label className={`min-h-[220px] rounded-2xl border-2 border-dashed border-white/15 hover:border-primary/40 hover:bg-primary/5 flex flex-col items-center justify-center gap-3 text-white/40 hover:text-white transition-all group cursor-pointer p-6 ${
                       isUploading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}>
                       <input 
@@ -782,24 +898,172 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                       {isUploading ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
                       ) : (
-                        <Camera size={28} className="group-hover:text-primary transition-colors" />
+                        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-primary/40 group-hover:scale-110 transition-all">
+                          <Camera size={24} className="group-hover:text-primary transition-colors" />
+                        </div>
                       )}
                       <div className="text-center px-2">
                         <span className="text-xs font-semibold block text-white/80">
                           {isUploading ? 'Uploading...' : 'Add Photos'}
                         </span>
                         <span className="text-[10px] text-white/40 block mt-0.5">
-                          {5 - photoCount} remaining
+                          {5 - photoCount} remaining • JPG, PNG, WebP, HEIC
                         </span>
                       </div>
                     </label>
                   )}
                 </div>
+
+                {/* Helpful Note about Optional Hidden Messages */}
+                <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-xs text-white/70 flex items-start gap-2.5">
+                  <span className="text-sm">✨</span>
+                  <p className="leading-relaxed">
+                    <strong>Both caption and hidden message are completely optional!</strong> If you write a hidden message, the recipient can tap the photo to flip it in 3D and reveal your secret note.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* STEP 7: FINAL TOUCHES & REVIEW */}
-            {step === 7 && (
+            {/* STEP 7: THINGS I LOVE ABOUT YOU */}
+            {step === 7 && (() => {
+              const currentThings = data.things_i_love && data.things_i_love.length > 0 
+                ? data.things_i_love 
+                : getDefaultThingsILove(data);
+              const isAtMax = currentThings.length >= 10;
+
+              return (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[11px] text-primary font-semibold uppercase tracking-widest">
+                        Customizable • From the Heart
+                      </div>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                        isAtMax 
+                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' 
+                          : 'bg-white/5 border-white/10 text-white/70'
+                      }`}>
+                        {currentThings.length} / 10 added
+                      </span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-serif">Things I love about you</h2>
+                    <p className="text-white/40 text-sm">
+                      We've pre-filled sweet reasons based on their personality and interests. You can edit, remove, or add up to 10 reasons.
+                    </p>
+                  </div>
+
+                  {/* Things list */}
+                  <div className="space-y-3">
+                    {currentThings.map((thing, idx) => (
+                      <motion.div 
+                        key={idx}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 focus-within:border-primary/50 transition-all"
+                      >
+                        {/* Number Badge */}
+                        <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary font-serif font-bold text-sm flex-shrink-0 mt-0.5">
+                          {idx + 1}
+                        </div>
+
+                        {/* Editable Text Input */}
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={thing}
+                            onChange={(e) => {
+                              const current = [...currentThings];
+                              current[idx] = e.target.value;
+                              update({ things_i_love: current });
+                            }}
+                            placeholder={`Reason #${idx + 1}...`}
+                            className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none font-medium"
+                          />
+                        </div>
+
+                        {/* Delete button (if more than 1 item) */}
+                        {currentThings.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = [...currentThings];
+                              current.splice(idx, 1);
+                              update({ things_i_love: current });
+                            }}
+                            className="text-white/30 hover:text-rose-400 p-1.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+                            title="Remove this reason"
+                          >
+                            <X size={15} />
+                          </button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Add another thing button with 10-item cap */}
+                  {!isAtMax ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentThings.length < 10) {
+                          const current = [...currentThings, ''];
+                          update({ things_i_love: current });
+                        }
+                      }}
+                      className="w-full py-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Plus size={16} />
+                      <span>Add another thing I love ({10 - currentThings.length} remaining)</span>
+                    </button>
+                  ) : (
+                    <div className="w-full py-2.5 px-3 rounded-xl bg-white/[0.03] border border-white/10 text-center text-xs text-amber-300/80">
+                      ✨ Maximum limit of 10 reasons reached
+                    </div>
+                  )}
+
+                  {/* Quick Inspiration Pills */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] uppercase tracking-wider text-white/40 font-semibold block">
+                      💡 Quick Ideas (Tap to add)
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        'The way you always make me laugh',
+                        'Your kindness and warm heart',
+                        'How passionate you are about what you love',
+                        'Our late night conversations',
+                        'Your cute little smile',
+                        'How you are always there for me'
+                      ].map(idea => (
+                        <button
+                          key={idea}
+                          type="button"
+                          disabled={isAtMax}
+                          onClick={() => {
+                            if (currentThings.length < 10) {
+                              const current = [...currentThings, idea];
+                              update({ things_i_love: current });
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-full border text-xs transition-all flex items-center gap-1.5 ${
+                            isAtMax 
+                              ? 'opacity-40 cursor-not-allowed border-white/5 text-white/30' 
+                              : 'border-white/10 bg-white/5 hover:border-primary/40 hover:bg-primary/10 text-white/70 hover:text-white cursor-pointer'
+                          }`}
+                        >
+                          <Plus size={12} className={isAtMax ? 'text-white/30' : 'text-primary'} />
+                          {idea}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* STEP 8: FINAL TOUCHES & REVIEW */}
+            {step === 8 && (
               <div className="space-y-8">
                 <div className="space-y-2">
                   <h2 className="text-3xl md:text-4xl font-serif">Your surprise is almost ready.</h2>
@@ -862,46 +1126,57 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                       <span className="text-white/80 text-right max-w-[200px] truncate">{data.interests}</span>
                     </div>
                   )}
+                  <div className="flex justify-between items-center py-2 text-sm">
+                    <span className="text-white/40">Things I Love</span>
+                    <span className="font-semibold text-primary">
+                      {(data.things_i_love || getDefaultThingsILove(data)).length} Reasons Included
+                    </span>
+                  </div>
                 </Card>
 
-                {/* Button to Choose Cake Image or GIF from website */}
+                {/* Button to Choose Cake from website */}
                 <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.03] space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <span className="text-2xl">🎂</span>
                       <div>
-                        <h4 className="text-sm font-semibold text-white">Birthday Cake (Photo / GIF)</h4>
-                        <p className="text-[11px] text-white/40">Real animated cake displayed when they open their link</p>
+                        <h4 className="text-sm font-semibold text-white">Birthday Cake</h4>
+                        <p className="text-[11px] text-white/40">Select the cake displayed when they open their celebration</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowCakeSelector(!showCakeSelector)}
-                      className="px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all"
+                      className="px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all cursor-pointer"
                     >
                       {showCakeSelector ? 'Close' : 'Choose Cake'}
                     </button>
                   </div>
 
                   {/* Selected Cake Preview Tile */}
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-white/5">
-                    <img
-                      src={CAKE_OPTIONS[0].thumbnail}
-                      alt=""
-                      className="w-14 h-14 rounded-xl object-cover border border-white/10"
-                    />
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-white">
-                        {CAKE_OPTIONS[0].name}
-                      </p>
-                      <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
-                        ✓ Your official cake ready for celebration
-                      </p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const currentCake = CAKE_OPTIONS.find(c => c.url === (data.cakeUrl || CAKE_OPTIONS[0].url)) || CAKE_OPTIONS[0];
+                    return (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-white/5">
+                        <img
+                          src={currentCake.thumbnail}
+                          alt={currentCake.name}
+                          className="w-14 h-14 rounded-xl object-contain bg-black/20 p-1 border border-white/10"
+                        />
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-white">
+                            {currentCake.name}
+                          </p>
+                          <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
+                            ✓ Active cake ready for celebration
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {showCakeSelector && (
-                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="pt-1">
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="pt-1 space-y-2">
                       {CAKE_OPTIONS.map(cake => {
                         const isSelected = (data.cakeUrl || CAKE_OPTIONS[0].url) === cake.url;
                         return (
@@ -912,24 +1187,48 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                               update({ cakeUrl: cake.url });
                               setShowCakeSelector(false);
                             }}
-                            className="w-full p-3 rounded-xl border border-primary bg-primary/15 shadow-[0_0_12px_rgba(217,70,239,0.25)] flex items-center gap-3 text-left transition-all"
+                            className={`w-full p-3 rounded-xl border flex items-center gap-3 text-left transition-all cursor-pointer ${
+                              isSelected
+                                ? 'border-primary bg-primary/15 shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+                                : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.06]'
+                            }`}
                           >
                             <img 
                               src={cake.thumbnail} 
-                              alt="" 
-                              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" 
+                              alt={cake.name} 
+                              className="w-12 h-12 rounded-lg object-contain bg-black/20 p-1 flex-shrink-0 border border-white/10" 
                             />
                             <div className="overflow-hidden flex-1">
                               <span className="text-xs font-medium text-white block truncate">{cake.name}</span>
-                              <span className="text-[10px] text-primary uppercase font-bold">ANIMATED GIF • Drive Upload</span>
                             </div>
-                            <span className="text-primary text-xs font-bold">✓ Selected</span>
+                            {isSelected ? (
+                              <span className="text-primary text-xs font-bold">✓ Selected</span>
+                            ) : (
+                              <span className="text-white/40 text-xs font-medium">Select</span>
+                            )}
                           </button>
                         );
                       })}
                     </motion.div>
                   )}
                 </div>
+
+                {/* AI Unavailable Notice Banner (Shown if AI generation encountered an error) */}
+                {aiErrorMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-3 shadow-xl"
+                  >
+                    <span className="text-2xl flex-shrink-0">✍️</span>
+                    <div className="space-y-1">
+                      <p className="font-bold text-white text-sm">AI is unavailable at this time</p>
+                      <p className="text-amber-200/90 leading-relaxed text-xs">
+                        Please write your birthday message manually below, or ask any chatbot like Gemini or ChatGPT to write one and paste it in!
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -946,7 +1245,7 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
                     onChange={e => update({ personalMessage: e.target.value })}
                   />
                   <p className="text-[11px] text-white/40">
-                    💡 <strong>Smart Note:</strong> When you write your own message, your exact heartfelt words will be delivered.
+                    💡 <strong>Smart Note:</strong> When you write your own message, your exact heartfelt words will be delivered without using AI.
                   </p>
                 </div>
 
@@ -991,7 +1290,7 @@ export const Wizard = ({ onComplete }: { onComplete: (data: SurpriseData) => voi
           )}
 
           {/* Continue / Create Button */}
-          {step < 7 ? (
+          {step < 8 ? (
             <Button 
               onClick={next} 
               disabled={
