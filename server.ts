@@ -21,14 +21,34 @@ async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
   const PORT = Number(process.env.PORT) || 3000;
+  const CANONICAL_HOST = 'birthdaymessage.cc.cd';
+  const CANONICAL_ORIGIN = `https://${CANONICAL_HOST}`;
 
   function getOrigin(req: express.Request): string {
     const forwardedProto = (req.headers['x-forwarded-proto'] as string)?.split(',')[0]?.trim();
-    const host = req.get('host') || 'birthdaymessage.cc.cd';
+    const host = req.get('host') || CANONICAL_HOST;
     const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1');
     const protocol = forwardedProto || (isLocal ? req.protocol : 'https');
     return `${protocol}://${host}`;
   }
+
+  // --- SEO & Duplicate Content Prevention Middleware ---
+  // If request arrives at Render subdomain (e.g. *.onrender.com), prevent search indexing & 301 redirect to primary domain
+  app.use((req, res, next) => {
+    const host = (req.get('host') || '').toLowerCase();
+    const isRenderHost = host.includes('.onrender.com');
+
+    if (isRenderHost) {
+      // 1. Set HTTP response header to forbid search engine indexing
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+
+      // 2. Safely 301 redirect all visitors and web crawlers to the primary canonical domain (excluding health check)
+      if (!req.path.startsWith('/api')) {
+        return res.redirect(301, `${CANONICAL_ORIGIN}${req.originalUrl}`);
+      }
+    }
+    next();
+  });
 
   // Ensure local uploads directory exists and is served statically
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -392,29 +412,37 @@ async function startServer() {
     }
   });
 
-  // --- Multi-Page Application (MPA) Routes for SEO, Google Search Console, and AdSense ---
+  // --- Multi-Page Application (MPA) Routes for SEO, Privacy, and AdSense ---
   app.get('/privacy-policy', (req, res) => {
     const origin = getOrigin(req);
+    const host = (req.get('host') || '').toLowerCase();
+    const isRender = host.includes('.onrender.com');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(renderPrivacyPolicyPage(origin));
+    res.send(renderPrivacyPolicyPage(origin, isRender));
   });
 
   app.get('/terms-and-conditions', (req, res) => {
     const origin = getOrigin(req);
+    const host = (req.get('host') || '').toLowerCase();
+    const isRender = host.includes('.onrender.com');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(renderTermsPage(origin));
+    res.send(renderTermsPage(origin, isRender));
   });
 
   app.get('/about-us', (req, res) => {
     const origin = getOrigin(req);
+    const host = (req.get('host') || '').toLowerCase();
+    const isRender = host.includes('.onrender.com');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(renderAboutPage(origin));
+    res.send(renderAboutPage(origin, isRender));
   });
 
   app.get('/contact-us', (req, res) => {
     const origin = getOrigin(req);
+    const host = (req.get('host') || '').toLowerCase();
+    const isRender = host.includes('.onrender.com');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(renderContactPage(origin));
+    res.send(renderContactPage(origin, isRender));
   });
 
   app.post('/api/contact', express.json(), (req, res) => {
@@ -430,14 +458,10 @@ async function startServer() {
 
   app.get('/robots.txt', (req, res) => {
     const origin = getOrigin(req);
+    const host = (req.get('host') || '').toLowerCase();
+    const isRender = host.includes('.onrender.com');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.send(renderRobotsTxt(origin));
-  });
-
-  // Google Search Console HTML verification endpoint
-  app.get('/google3b96e2c778683946.html', (req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send('google-site-verification: google3b96e2c778683946.html');
+    res.send(renderRobotsTxt(origin, isRender));
   });
 
   // Vite middleware for development
@@ -461,7 +485,27 @@ async function startServer() {
       }
     }));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        let html = fs.readFileSync(indexPath, 'utf-8');
+        const host = (req.get('host') || '').toLowerCase();
+        const isRender = host.includes('.onrender.com');
+
+        // Dynamically enforce primary domain as canonical source across all routes
+        const canonicalUrl = `${CANONICAL_ORIGIN}${req.path === '/' ? '/' : req.path}`;
+        if (html.includes('<link rel="canonical"')) {
+          html = html.replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonicalUrl}" />`);
+        }
+
+        // If accessed directly from Render subdomain, inject noindex, nofollow
+        if (isRender) {
+          html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex, nofollow" />');
+        }
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+      }
+      res.sendFile(indexPath);
     });
   }
 

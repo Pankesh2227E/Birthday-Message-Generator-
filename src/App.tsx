@@ -35,6 +35,8 @@ export default function App() {
   const [surpriseId, setSurpriseId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [replayKey, setReplayKey] = useState(0);
+  const [cameFromPreview, setCameFromPreview] = useState(false);
 
   React.useEffect(() => {
     const path = window.location.pathname;
@@ -177,7 +179,10 @@ export default function App() {
       <ShareScreen
         surpriseId={surpriseId}
         surpriseData={surpriseData}
-        onOpenPreview={() => setView('RECIPIENT_VIEW')}
+        onOpenPreview={() => {
+          setCameFromPreview(true);
+          setView('RECIPIENT_VIEW');
+        }}
         onCreateAnother={() => setView('LANDING')}
       />
     );
@@ -186,13 +191,27 @@ export default function App() {
   if (view === 'RECIPIENT_VIEW') {
     return (
       <div className="relative">
+        {/* Replay Celebration Button - Strictly restarts the surprise celebration from Scene 1 */}
         <button 
-          onClick={() => setView('RECIPIENT_PREVIEW')}
-          className="fixed top-6 left-6 z-[60] p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-white transition-all"
+          onClick={() => setReplayKey(k => k + 1)}
+          title="Replay Celebration"
+          aria-label="Replay Celebration"
+          className="fixed top-6 left-6 z-[60] p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer"
         >
           <RefreshCw size={20} />
         </button>
-        <RecipientExperience data={surpriseData || MOCK_SURPRISE} />
+
+        {/* Back to Share Screen button (Only shown if creator opened this from preview mode) */}
+        {cameFromPreview && (
+          <button
+            onClick={() => setView('RECIPIENT_PREVIEW')}
+            className="fixed top-6 right-6 z-[60] px-4 py-2 bg-black/50 backdrop-blur-md border border-white/20 rounded-full text-xs font-semibold text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer flex items-center gap-2"
+          >
+            <span>← Back to Share Screen</span>
+          </button>
+        )}
+
+        <RecipientExperience key={replayKey} data={surpriseData || MOCK_SURPRISE} onReplay={() => setReplayKey(k => k + 1)} />
       </div>
     );
   }

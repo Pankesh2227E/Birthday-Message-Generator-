@@ -26,16 +26,36 @@ export function calculateExpiryTimestamp(dob?: string, createdAt: number = Date.
   }
 
   if (month >= 0 && day > 0) {
-    const currentYear = new Date().getFullYear();
-    // Target birthday date in current year at end of day (23:59:59)
+    const currentYear = new Date(createdAt).getFullYear();
+    // Target birthday date in current year at end of day (23:59:59.999)
     const birthdayThisYear = new Date(currentYear, month, day, 23, 59, 59, 999).getTime();
-    
-    // 2 days after the selected birthdate
-    const expiryAfterBirthday = birthdayThisYear + TWO_DAYS_MS;
+    const expiryAfterBirthdayThisYear = birthdayThisYear + TWO_DAYS_MS;
 
-    // If the birthday was far in the past this year (e.g. 6 months ago) and someone creates it today,
-    // ensure they at least get 2 full days from creation time to enjoy it.
-    return Math.max(expiryAfterBirthday, createdAt + TWO_DAYS_MS);
+    // Condition 1: Birthday is upcoming later in the current calendar year
+    // (e.g., today is Nov 3, birthday is Dec 15)
+    // -> Keep active until 48 hours after the birthday
+    if (birthdayThisYear >= createdAt) {
+      return expiryAfterBirthdayThisYear;
+    }
+
+    // Condition 2: Birthday occurred within the last 48 hours
+    // -> Keep active until the 48-hour window from the birthday completes
+    if (expiryAfterBirthdayThisYear > createdAt) {
+      return expiryAfterBirthdayThisYear;
+    }
+
+    // Condition 3: Near-term upcoming birthday across the New Year boundary (e.g., created late Dec for early Jan)
+    const birthdayNextYear = new Date(currentYear + 1, month, day, 23, 59, 59, 999).getTime();
+    const daysUntilNext = (birthdayNextYear - createdAt) / (1000 * 60 * 60 * 24);
+    if (daysUntilNext <= 31) {
+      return birthdayNextYear + TWO_DAYS_MS;
+    }
+
+    // Condition 4: The birthday has ALREADY passed earlier this year
+    // (e.g., today is November, but user creates a surprise with an October birthdate)
+    // -> It NEVER stores data for 1 year! It automatically and safely expires in exactly
+    // 48 hours (2 days) from the moment the surprise is created.
+    return createdAt + TWO_DAYS_MS;
   }
 
   return createdAt + TWO_DAYS_MS;

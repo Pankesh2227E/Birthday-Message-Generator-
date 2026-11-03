@@ -8,22 +8,36 @@ function baseLayout({
   canonicalUrl,
   content,
   jsonLd,
+  isNoIndex = false,
 }: {
   title: string;
   description: string;
   canonicalUrl: string;
   content: string;
   jsonLd?: object;
+  isNoIndex?: boolean;
 }): string {
+  const robotsMeta = isNoIndex 
+    ? '<meta name="robots" content="noindex, nofollow">'
+    : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-M1NR3GVTTS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-M1NR3GVTTS');
+  </script>
   <title>${title}</title>
   <meta name="description" content="${description}">
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <meta name="google-site-verification" content="google3b96e2c778683946">
+  ${robotsMeta}
   <link rel="canonical" href="${canonicalUrl}">
 
   <!-- OpenGraph Social Cards -->
@@ -383,8 +397,10 @@ function baseLayout({
 </html>`;
 }
 
-export function renderPrivacyPolicyPage(origin: string): string {
-  const canonicalUrl = `${origin}/privacy-policy`;
+const CANONICAL_BASE = 'https://birthdaymessage.cc.cd';
+
+export function renderPrivacyPolicyPage(origin: string, isNoIndex: boolean = false): string {
+  const canonicalUrl = `${CANONICAL_BASE}/privacy-policy`;
   const title = "Privacy Policy – Birthday Surprise";
   const description = "Learn how Birthday Surprise protects your data with our strict 2-day automatic data deletion policy for all photos, names, and memories.";
 
@@ -457,15 +473,15 @@ export function renderPrivacyPolicyPage(origin: string): string {
     "isPartOf": {
       "@type": "WebSite",
       "name": "Birthday Surprise",
-      "url": origin
+      "url": CANONICAL_BASE
     }
   };
 
-  return baseLayout({ title, description, canonicalUrl, content, jsonLd });
+  return baseLayout({ title, description, canonicalUrl, content, jsonLd, isNoIndex });
 }
 
-export function renderTermsPage(origin: string): string {
-  const canonicalUrl = `${origin}/terms-and-conditions`;
+export function renderTermsPage(origin: string, isNoIndex: boolean = false): string {
+  const canonicalUrl = `${CANONICAL_BASE}/terms-and-conditions`;
   const title = "Terms & Conditions – Birthday Surprise";
   const description = "Read the Terms & Conditions governing the use of Birthday Surprise, including user conduct, acceptable use, and our automatic 2-day data deletion policy.";
 
@@ -517,15 +533,15 @@ export function renderTermsPage(origin: string): string {
     "isPartOf": {
       "@type": "WebSite",
       "name": "Birthday Surprise",
-      "url": origin
+      "url": CANONICAL_BASE
     }
   };
 
-  return baseLayout({ title, description, canonicalUrl, content, jsonLd });
+  return baseLayout({ title, description, canonicalUrl, content, jsonLd, isNoIndex });
 }
 
-export function renderAboutPage(origin: string): string {
-  const canonicalUrl = `${origin}/about-us`;
+export function renderAboutPage(origin: string, isNoIndex: boolean = false): string {
+  const canonicalUrl = `${CANONICAL_BASE}/about-us`;
   const title = "About Us – Birthday Surprise";
   const description = "Discover how Birthday Surprise transforms simple memories into cinematic, heartfelt digital celebrations designed with privacy at the core.";
 
@@ -571,16 +587,16 @@ export function renderAboutPage(origin: string): string {
     "mainEntity": {
       "@type": "Organization",
       "name": "Birthday Surprise",
-      "url": origin,
+      "url": CANONICAL_BASE,
       "email": "sahupankesh7@gmail.com"
     }
   };
 
-  return baseLayout({ title, description, canonicalUrl, content, jsonLd });
+  return baseLayout({ title, description, canonicalUrl, content, jsonLd, isNoIndex });
 }
 
-export function renderContactPage(origin: string): string {
-  const canonicalUrl = `${origin}/contact-us`;
+export function renderContactPage(origin: string, isNoIndex: boolean = false): string {
+  const canonicalUrl = `${CANONICAL_BASE}/contact-us`;
   const title = "Contact Us – Birthday Surprise";
   const description = "Have questions, feedback, or need data assistance? Contact the Birthday Surprise support team directly.";
 
@@ -680,7 +696,7 @@ export function renderContactPage(origin: string): string {
     }
   };
 
-  return baseLayout({ title, description, canonicalUrl, content, jsonLd });
+  return baseLayout({ title, description, canonicalUrl, content, jsonLd, isNoIndex });
 }
 
 export function renderSitemapXml(origin: string): string {
@@ -688,31 +704,31 @@ export function renderSitemapXml(origin: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>${origin}/</loc>
+    <loc>${CANONICAL_BASE}/</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${origin}/about-us</loc>
+    <loc>${CANONICAL_BASE}/about-us</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>${origin}/contact-us</loc>
+    <loc>${CANONICAL_BASE}/contact-us</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>${origin}/privacy-policy</loc>
+    <loc>${CANONICAL_BASE}/privacy-policy</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>${origin}/terms-and-conditions</loc>
+    <loc>${CANONICAL_BASE}/terms-and-conditions</loc>
     <lastmod>${currentDate}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -720,7 +736,13 @@ export function renderSitemapXml(origin: string): string {
 </urlset>`;
 }
 
-export function renderRobotsTxt(origin: string): string {
+export function renderRobotsTxt(origin: string, isRenderHost: boolean = false): string {
+  if (isRenderHost) {
+    return `User-agent: *
+Disallow: /
+`;
+  }
+
   return `User-agent: Googlebot
 Allow: /
 Disallow: /api/
@@ -741,6 +763,6 @@ Disallow: /surprise/
 Disallow: /uploads/
 Disallow: /s/
 
-Sitemap: ${origin}/sitemap.xml
+Sitemap: ${CANONICAL_BASE}/sitemap.xml
 `;
 }

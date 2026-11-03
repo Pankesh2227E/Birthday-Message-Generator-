@@ -728,7 +728,7 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
 const MOBILE_LETTER_IMG = '/letter-bg-mobile.webp';
 const DESKTOP_LETTER_IMG = '/letter-bg-desktop.webp';
 
-const LetterView = ({ message, aiMessage, name, finalMessage }: { message: string, aiMessage?: string, name: string, finalMessage?: string }) => {
+const LetterView = ({ message, aiMessage, name, finalMessage, onReplay }: { message: string, aiMessage?: string, name: string, finalMessage?: string, onReplay?: () => void }) => {
   const [opened, setOpened] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
 
@@ -990,22 +990,31 @@ const LetterView = ({ message, aiMessage, name, finalMessage }: { message: strin
         </motion.div>
       </div>
 
-      {/* Subtle control below book when opened to allow re-closing and re-watching the 3D turn */}
+      {/* Controls below book when opened to allow re-closing or replaying the entire surprise */}
       {opened && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.4, duration: 0.5 }}
-          className="mt-4 sm:mt-5 z-20"
+          className="mt-4 sm:mt-5 z-20 flex flex-wrap items-center justify-center gap-4 sm:gap-6"
         >
           <button
             type="button"
             onClick={handleCloseBook}
             disabled={isFlipping}
-            className="text-xs sm:text-sm text-rose-200/70 hover:text-white transition-colors underline decoration-rose-300/40 cursor-pointer flex items-center gap-1.5 mx-auto"
+            className="text-xs sm:text-sm text-rose-200/70 hover:text-white transition-colors underline decoration-rose-300/40 cursor-pointer flex items-center gap-1.5"
           >
             <span>📖 Close book cover</span>
           </button>
+          {onReplay && (
+            <button
+              type="button"
+              onClick={onReplay}
+              className="text-xs sm:text-sm text-amber-200/80 hover:text-amber-100 transition-colors underline decoration-amber-300/40 cursor-pointer flex items-center gap-1.5"
+            >
+              <span>🔄 Replay celebration</span>
+            </button>
+          )}
         </motion.div>
       )}
     </motion.div>
@@ -1104,20 +1113,30 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
           transition={{ delay: 1.7, duration: 0.6 }}
           className="pt-2"
         >
-          <Button 
+          <button 
             onClick={onNext}
-            className="shadow-[0_10px_30px_rgba(136,19,55,0.35)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/30 cursor-pointer"
+            className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-[#781b2c] backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_10px_30px_rgba(120,27,44,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-2 cursor-pointer mx-auto"
           >
-            <span>Continue to your Letter 💌</span>
-          </Button>
+            {/* Specular glass reflection overlay */}
+            <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/70 to-transparent pointer-events-none rounded-t-full opacity-80" />
+            <span className="relative z-10 flex items-center gap-2 font-serif font-bold">
+              <span>Continue to your Letter</span>
+              <span className="text-base group-hover:scale-110 transition-transform">💌</span>
+            </span>
+          </button>
         </motion.div>
       </div>
     </motion.div>
   );
 };
 
-export const RecipientExperience = ({ data }: { data: SurpriseData }) => {
+export const RecipientExperience = ({ data, onReplay }: { data: SurpriseData, onReplay?: () => void, key?: React.Key }) => {
   const [step, setStep] = useState(1);
+
+  const handleReplay = () => {
+    setStep(1);
+    if (onReplay) onReplay();
+  };
 
   return (
     <div className="bg-background text-white min-h-screen overflow-hidden">
@@ -1126,7 +1145,7 @@ export const RecipientExperience = ({ data }: { data: SurpriseData }) => {
         {step === 2 && <CakeView data={data} onNext={() => setStep(3)} />}
         {step === 3 && <GalleryView memories={data.memories} data={data} onNext={() => setStep(4)} />}
         {step === 4 && <ThingsILove things={data.things_i_love} onNext={() => setStep(5)} />}
-        {step === 5 && <LetterView name={data.recipientName} message={data.personalMessage} aiMessage={data.birthday_message} finalMessage={data.final_message} />}
+        {step === 5 && <LetterView name={data.recipientName} message={data.personalMessage} aiMessage={data.birthday_message} finalMessage={data.final_message} onReplay={handleReplay} />}
       </AnimatePresence>
     </div>
   );
