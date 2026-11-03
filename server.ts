@@ -476,11 +476,13 @@ async function startServer() {
     app.use(express.static(distPath, {
       maxAge: '1d',
       setHeaders: (res, filePath) => {
-        if (filePath.match(/\.(webp|png|jpe?g|gif|svg|woff2?|ico)$/i)) {
+        if (filePath.match(/(favicon|apple-touch-icon)/i)) {
+          res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
+        } else if (filePath.match(/\.(webp|png|jpe?g|gif|svg|woff2?|ico)$/i)) {
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         } else if (filePath.endsWith('.webmanifest')) {
           res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
         }
       }
     }));

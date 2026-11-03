@@ -54,14 +54,16 @@ function baseLayout({
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="https://res.cloudinary.com/zxgbxh38/image/upload/w_1200,h_630,c_fill/v1791811363/birthday_surprise/official_user_birthday_cake.jpg">
 
-  <!-- Favicon -->
-  <link rel="icon" href="/favicon.ico" sizes="48x48">
-  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <!-- Favicons & Icons (Optimized for Google Search 48px multiple & Safari iOS) -->
+  <link rel="icon" href="/favicon.ico?v=2" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=2">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=2">
+  <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png?v=2">
+  <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="apple-mobile-web-app-title" content="Birthday Surprise">
   <meta name="theme-color" content="#ec4899">
 
