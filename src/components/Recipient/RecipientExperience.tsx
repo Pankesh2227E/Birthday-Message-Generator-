@@ -12,9 +12,13 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
       const img = new Image();
       img.src = src;
     };
-    preload('/cake-scene-bg.webp');
+    preload('/cake-scene-bg-vertical.webp');
+    preload('/cake-scene-bg-horizontal.webp');
+    preload('/cake-table-stool.webp');
     preload('/cake-static.webp');
     preload('/cake-lit.webp');
+    preload('/cake-celebration-pink.webp');
+    preload('/cake-celebration-pink-lit.webp');
   }, []);
 
   return (
@@ -22,52 +26,64 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full flex items-center justify-center text-center px-4 overflow-hidden bg-cover bg-center select-none"
-      style={{ backgroundImage: `url('/intro-bg.webp')` }}
+      className="relative min-h-screen w-full flex items-center justify-center text-center overflow-x-hidden overflow-y-auto bg-[#2b040a] select-none p-2 sm:p-4"
     >
-      {/* Subtle vignette for edge richness */}
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+      {/* Blurred background backdrop filling wide desktop screens & landscape borders */}
+      <div 
+        className="fixed inset-0 w-full h-full bg-cover bg-center opacity-40 blur-xl pointer-events-none -z-10 scale-105"
+        style={{ backgroundImage: `url('/intro-bg.webp')` }}
+      />
+      <div className="fixed inset-0 bg-black/35 pointer-events-none -z-10" />
 
-      {/* Content precisely positioned over the central parchment paper area */}
-      <div className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto py-10 px-4 sm:px-6 flex flex-col items-center justify-center">
-        <motion.p 
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 0.85, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="text-[11px] sm:text-xs uppercase tracking-[0.22em] font-semibold text-[#5a3a24] mb-3 sm:mb-4 drop-shadow-sm font-sans"
-        >
-          {intro || `A birthday celebration crafted with love for ${name} ✨`}
-        </motion.p>
-        
-        <motion.h1 
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-serif leading-[1.12] text-[#24110d] tracking-tight mb-8 sm:mb-10"
-        >
-          {name},<br />
-          <span className="italic font-normal">this is for you.</span>{' '}
-          <span className="text-rose-600 inline-block drop-shadow-sm">❤️</span>
-        </motion.h1>
+      {/* Main framed parchment stage - Strictly maintains 941/1672 aspect ratio and scales smoothly on zoom & landscape */}
+      <div className="relative z-10 w-full max-w-[430px] landscape:max-w-[340px] md:landscape:max-w-[410px] aspect-[941/1672] max-h-[96vh] my-auto flex flex-col items-center justify-center shadow-2xl rounded-2xl overflow-hidden">
+        <img
+          src="/intro-bg.webp"
+          alt="Birthday Parchment"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+        />
 
-        {/* iPhone Style Glass Screen Transparent Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.6, duration: 0.6 }}
-        >
-          <button 
-            onClick={onNext}
-            className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-base sm:text-lg font-semibold tracking-wide text-[#2b120c] backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_10px_30px_rgba(40,10,15,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-3 cursor-pointer"
+        {/* Content bounded inside the central parchment area (approx 31% to 69% height) */}
+        <div className="relative z-10 w-[84%] h-[40%] flex flex-col items-center justify-between text-center py-2 sm:py-3 px-2">
+          <motion.p 
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 0.85, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-[10px] sm:text-xs uppercase tracking-[0.2em] font-semibold text-[#5a3a24] drop-shadow-sm font-sans line-clamp-2"
           >
-            {/* Specular glass reflection overlay */}
-            <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-80" />
-            <span className="relative z-10 flex items-center gap-2.5 font-medium">
-              <span>Open Your Surprise</span>
-              <span className="text-xl group-hover:scale-110 transition-transform">🎁</span>
-            </span>
-          </button>
-        </motion.div>
+            {intro || `A birthday celebration crafted with love for ${name} ✨`}
+          </motion.p>
+          
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.7 }}
+            className="text-[clamp(1.5rem,5vw,2.5rem)] font-serif leading-[1.14] text-[#24110d] tracking-tight drop-shadow-sm"
+          >
+            {name},<br />
+            <span className="italic font-normal">this is for you.</span>{' '}
+            <span className="text-rose-600 inline-block drop-shadow-sm">❤️</span>
+          </motion.h1>
+
+          {/* iPhone Style Glass Screen Transparent Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+          >
+            <button 
+              onClick={onNext}
+              className="group relative overflow-hidden px-7 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm md:text-base font-semibold tracking-wide text-[#2b120c] backdrop-blur-xl bg-white/50 hover:bg-white/65 active:scale-95 transition-all duration-300 shadow-[0_8px_25px_rgba(40,10,15,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {/* Specular glass reflection overlay */}
+              <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-80" />
+              <span className="relative z-10 flex items-center gap-2 font-medium">
+                <span>Open Your Surprise</span>
+                <span className="text-base sm:text-lg group-hover:scale-110 transition-transform">🎁</span>
+              </span>
+            </button>
+          </motion.div>
+        </div>
       </div>
     </motion.div>
   );
@@ -157,7 +173,9 @@ const FloatingBalloons = () => (
 );
 
 // --- Cake Screen ---
-const CAKE_BG = '/cake-scene-bg.webp';
+const CAKE_BG_VERTICAL = '/cake-scene-bg-vertical.webp';
+const CAKE_BG_HORIZONTAL = '/cake-scene-bg-horizontal.webp';
+const CAKE_TABLE_STOOL = '/cake-table-stool.webp';
 const CAKE_STATIC_PNG = '/cake-static.webp';
 const CAKE_LIT_GIF = '/cake-lit.webp';
 
@@ -179,200 +197,236 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
   const ordinalAge = getOrdinal(data.recipientAge);
   const relationshipPhrase = getRelationshipPhrase(data.relationship, data.recipientName);
 
+  const isPinkCake = Boolean(
+    data?.cakeUrl && (
+      data.cakeUrl.includes('celebration-pink') || 
+      data.cakeUrl.includes('IMG-2620') ||
+      data.cakeUrl.includes('cake-option-2')
+    )
+  );
+  const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.webp' : CAKE_STATIC_PNG;
+  const litCakeSrc = isPinkCake ? (data.cakeUrl || '/cake-celebration-pink-lit.webp') : CAKE_LIT_GIF;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-between select-none"
+      className="relative min-h-screen w-full overflow-hidden flex flex-col select-none"
     >
-      {/* Soft romantic placeholder gradient to eliminate any blank screen on slow networks */}
+      {/* Soft romantic placeholder gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#fce7f3] via-[#fdf2f8] to-[#fbcfe8] z-0" />
 
-      {/* 1. Background Image: Room with wooden floral stool table */}
+      {/* 1. Background Image - Responsive Vertical (portrait) vs Horizontal (landscape & desktop) */}
       <img
-        src={CAKE_BG}
+        src={CAKE_BG_VERTICAL}
         onError={(e) => {
-          const img = e.currentTarget as HTMLImageElement;
-          if (img.src.includes('.webp')) {
-            img.src = '/cake-scene-bg.png';
-          }
+          (e.currentTarget as HTMLImageElement).src = '/cake-scene-bg.webp';
         }}
-        alt="Birthday Room Background"
-        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
+        alt="Birthday Room Background (Vertical)"
+        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none portrait:block landscape:hidden md:hidden z-0"
+      />
+      <img
+        src={CAKE_BG_HORIZONTAL}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/cake-scene-bg.webp';
+        }}
+        alt="Birthday Room Background (Horizontal)"
+        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none portrait:hidden landscape:block md:block z-0"
       />
 
       {/* Floating balloons upward when lit */}
       {lit && <FloatingBalloons />}
 
-      {/* 4. Top Area: Button before lighting candle, Animated Headline after lighting */}
-      <div className="relative z-30 w-full max-w-lg mx-auto pt-10 sm:pt-14 px-4 flex flex-col items-center text-center">
-        {!lit ? (
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col items-center space-y-3"
-          >
-            <button 
-              onClick={() => setLit(true)} 
-              className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-sm sm:text-base font-semibold tracking-wide text-rose-950 backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_12px_35px_rgba(180,30,80,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center gap-3 cursor-pointer"
+      {/* Main Content Area: Responsive flex layout for both portrait and horizontal/desktop */}
+      <div className="relative z-20 min-h-screen w-full flex flex-col landscape:flex-row md:flex-row items-center justify-between landscape:justify-around md:justify-around py-6 sm:py-8 landscape:py-4 px-4 sm:px-8 max-w-6xl mx-auto my-auto">
+        
+        {/* Left Column / Top Section: Title & Interactive Candle / Continuation Buttons */}
+        <div className="w-full max-w-md flex flex-col items-center text-center space-y-4 landscape:space-y-3 z-30 pt-4 landscape:pt-0">
+          {!lit ? (
+            <motion.div
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex flex-col items-center space-y-3"
             >
-              {/* Specular glass reflection overlay */}
-              <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-90" />
-              <span className="relative z-10 flex items-center gap-2.5">
-                <span className="text-xl animate-pulse group-hover:scale-110 transition-transform">🕯️</span>
-                <span className="font-semibold text-stone-900 tracking-wide">Light the Candle</span>
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] font-bold text-rose-800/80 font-sans">
+                ✨ A Special Celebration ✨
               </span>
-            </button>
-            <p className="text-xs text-rose-900/70 font-serif italic tracking-wide">
-              Tap to light the birthday candles ✨
-            </p>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="birthday-message"
-            initial={{ opacity: 0, scale: 0.85, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center space-y-1.5"
-          >
-            <motion.span 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="text-[10px] sm:text-xs uppercase tracking-[0.3em] font-bold text-rose-800/80 font-sans"
-            >
-              ✨ A Special Celebration ✨
-            </motion.span>
-            
-            <motion.h2 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.7 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-serif font-extrabold text-[#781b2c] tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.9)]"
-            >
-              Happiest {ordinalAge ? `${ordinalAge} ` : ''}Birthday
-            </motion.h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-extrabold text-[#781b2c] tracking-tight drop-shadow-sm">
+                Happiest {ordinalAge ? `${ordinalAge} ` : ''}Birthday
+              </h2>
+              <p className="text-base sm:text-lg md:text-xl font-serif italic text-rose-900 font-semibold">
+                {relationshipPhrase} <span className="text-rose-600 not-italic">❤️</span>
+              </p>
 
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.7 }}
-              className="text-lg sm:text-xl md:text-2xl font-serif italic text-rose-900 font-semibold"
+              {/* iPhone style glass skin button */}
+              <button 
+                onClick={() => setLit(true)} 
+                className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-sm sm:text-base font-semibold tracking-wide text-rose-950 backdrop-blur-xl bg-white/45 hover:bg-white/60 active:scale-95 transition-all duration-300 shadow-[0_12px_35px_rgba(180,30,80,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center gap-3 cursor-pointer mt-2"
+              >
+                <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-90" />
+                <span className="relative z-10 flex items-center gap-2.5">
+                  <span className="text-xl animate-pulse group-hover:scale-110 transition-transform">🕯️</span>
+                  <span className="font-semibold text-stone-900 tracking-wide">Light the Candle</span>
+                </span>
+              </button>
+              <p className="text-xs text-rose-900/70 font-serif italic tracking-wide">
+                Tap to light the birthday candles ✨
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="birthday-message"
+              initial={{ opacity: 0, scale: 0.85, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center space-y-2 sm:space-y-3"
             >
-              {relationshipPhrase} <span className="text-rose-600 not-italic">❤️</span>
-            </motion.p>
-          </motion.div>
-        )}
-      </div>
+              <motion.span 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                className="text-[10px] sm:text-xs uppercase tracking-[0.3em] font-bold text-rose-800/80 font-sans"
+              >
+                ✨ A Special Celebration ✨
+              </motion.span>
+              
+              <motion.h2 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.7 }}
+                className="text-2xl sm:text-3xl md:text-4xl font-serif font-extrabold text-[#781b2c] tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.9)]"
+              >
+                Happiest {ordinalAge ? `${ordinalAge} ` : ''}Birthday
+              </motion.h2>
 
-      {/* 2 & 3. Cake fixed at the stool/table */}
-      {/* Both static cake and lit animated cake have identical dimensions and stool base placement */}
-      <div className="absolute bottom-[27%] sm:bottom-[28%] md:bottom-[28%] left-1/2 -translate-x-1/2 z-10 flex flex-col items-center justify-end pointer-events-none">
-        {/* Glow halo when lit */}
-        <AnimatePresence>
-          {lit && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className="absolute -top-10 w-72 h-72 bg-amber-400/25 blur-[55px] rounded-full pointer-events-none"
-            />
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.7 }}
+                className="text-lg sm:text-xl md:text-2xl font-serif italic text-rose-900 font-semibold"
+              >
+                {relationshipPhrase} <span className="text-rose-600 not-italic">❤️</span>
+              </motion.p>
+
+              {/* Continuation Button (in landscape/desktop shown here under the text) */}
+              <div className="hidden landscape:block md:block pt-3">
+                <Button 
+                  onClick={onNext}
+                  className="shadow-[0_10px_30px_rgba(136,19,55,0.4)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20 cursor-pointer pointer-events-auto"
+                >
+                  <span>Make a Wish & Continue ✨</span>
+                  <span>→</span>
+                </Button>
+              </div>
+            </motion.div>
           )}
-        </AnimatePresence>
+        </div>
 
-        {/* Dynamic Cake rendering based on creator choice */}
-        {(() => {
-          const isPinkCake = Boolean(
-            data?.cakeUrl && (
-              data.cakeUrl.includes('celebration-pink') || 
-              data.cakeUrl.includes('IMG-2620') ||
-              data.cakeUrl.includes('cake-option-2')
-            )
-          );
-          const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.webp' : CAKE_STATIC_PNG;
-          const litCakeSrc = isPinkCake ? (data.cakeUrl || '/cake-celebration-pink-lit.webp') : CAKE_LIT_GIF;
+        {/* Right Column / Center Section: Cake resting securely on top of the floral stool table */}
+        <div className="relative z-20 flex flex-col items-center justify-end my-auto select-none pointer-events-none">
+          {/* Glow halo when lit */}
+          <AnimatePresence>
+            {lit && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+                className="absolute top-2 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-amber-400/25 blur-[55px] rounded-full pointer-events-none z-10"
+              />
+            )}
+          </AnimatePresence>
 
-          return (
-            <div className="relative w-48 sm:w-54 md:w-60 flex items-end justify-center">
-              <AnimatePresence mode="wait">
-                {!lit ? (
-                  // Static Cake on pedestal stand resting on the table
-                  <motion.div
-                    key="static-cake"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-full flex items-end justify-center"
-                  >
-                    <img
-                      src={staticCakeSrc}
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (isPinkCake) {
-                          img.src = '/cake-celebration-pink.png';
-                        } else if (img.src.includes('.webp')) {
-                          img.src = '/cake-static.png';
-                        }
-                      }}
-                      alt="Birthday Cake on Stand"
-                      className="w-full h-auto object-contain filter drop-shadow-[0_16px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
-                    />
-                  </motion.div>
-                ) : (
-                  // Lit animated cake with flickering candles and warm celebration glow
-                  <motion.div
-                    key="lit-cake"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-full flex items-end justify-center"
-                  >
-                    <img
-                      src={litCakeSrc}
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (isPinkCake) {
-                          if (img.src.includes('-lit.webp')) {
-                            img.src = '/cake-celebration-pink.gif';
-                          } else {
-                            img.src = 'https://i.postimg.cc/nV5BPHSS/IMG-2620.gif';
-                          }
-                        } else if (img.src.includes('.webp')) {
-                          img.src = '/cake-lit-cropped.gif';
+          {/* Cake wrapper: Static and Lit cake match exact dimensions */}
+          <div className="relative z-20 w-44 sm:w-52 md:w-56 landscape:w-36 md:landscape:w-52 lg:w-60 flex items-end justify-center pointer-events-none">
+            <AnimatePresence mode="wait">
+              {!lit ? (
+                <motion.div
+                  key="static-cake"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full flex items-end justify-center"
+                >
+                  <img
+                    src={staticCakeSrc}
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (isPinkCake) {
+                        img.src = '/cake-celebration-pink.png';
+                      } else if (img.src.includes('.webp')) {
+                        img.src = '/cake-static.png';
+                      }
+                    }}
+                    alt="Birthday Cake on Stand"
+                    className="w-full h-auto object-contain filter drop-shadow-[0_16px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="lit-cake"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full flex items-end justify-center"
+                >
+                  <img
+                    src={litCakeSrc}
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (isPinkCake) {
+                        if (img.src.includes('-lit.webp')) {
+                          img.src = '/cake-celebration-pink.gif';
                         } else {
-                          img.src = '/cake-lit.gif';
+                          img.src = 'https://i.postimg.cc/nV5BPHSS/IMG-2620.gif';
                         }
-                      }}
-                      alt="Celebration Birthday Cake with Lit Candle"
-                      className="w-full h-auto object-contain filter drop-shadow-[0_18px_30px_rgba(217,70,239,0.35)] select-none pointer-events-none"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })()}
-      </div>
+                      } else if (img.src.includes('.webp')) {
+                        img.src = '/cake-lit-cropped.gif';
+                      } else {
+                        img.src = '/cake-lit.gif';
+                      }
+                    }}
+                    alt="Celebration Birthday Cake with Lit Candle"
+                    className="w-full h-auto object-contain filter drop-shadow-[0_18px_30px_rgba(217,70,239,0.35)] select-none pointer-events-none"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-      {/* Bottom continuation button when lit */}
-      <div className="relative z-30 pb-6 sm:pb-8 flex justify-center w-full px-4 min-h-[60px]">
+          {/* Stool Table underneath the cake stand */}
+          <div className="relative z-10 -mt-6 sm:-mt-8 md:-mt-9 landscape:-mt-5 md:landscape:-mt-8 w-52 sm:w-60 md:w-64 landscape:w-44 md:landscape:w-60 lg:w-72 flex items-start justify-center pointer-events-none">
+            <img
+              src={CAKE_TABLE_STOOL}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/cake-table-stool.png';
+              }}
+              alt="Birthday Floral Table Stool"
+              className="w-full h-auto object-contain filter drop-shadow-[0_16px_28px_rgba(0,0,0,0.18)] select-none pointer-events-none"
+              draggable={false}
+            />
+          </div>
+        </div>
+
+        {/* Bottom Continuation Button (shown in portrait below the cake) */}
         {lit && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
-          >
-            <Button 
-              onClick={onNext}
-              className="shadow-[0_10px_30px_rgba(136,19,55,0.4)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20 cursor-pointer pointer-events-auto"
+          <div className="portrait:block landscape:hidden md:hidden relative z-30 pb-4 pt-2 flex justify-center w-full px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
             >
-              <span>Make a Wish & Continue ✨</span>
-              <span>→</span>
-            </Button>
-          </motion.div>
+              <Button 
+                onClick={onNext}
+                className="shadow-[0_10px_30px_rgba(136,19,55,0.4)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20 cursor-pointer pointer-events-auto"
+              >
+                <span>Make a Wish & Continue ✨</span>
+                <span>→</span>
+              </Button>
+            </motion.div>
+          </div>
         )}
       </div>
     </motion.div>
@@ -464,11 +518,11 @@ const DEFAULT_CAPTIONS = [
 ];
 
 const PHOTO_POSITIONS = [
-  "left-[8%] top-[14%] md:left-[9%] md:top-[18%]",
-  "left-[48%] top-[16%] md:left-[27%] md:top-[15%]",
-  "left-[10%] top-[40%] md:left-[46%] md:top-[22%]",
-  "left-[50%] top-[44%] md:left-[65%] md:top-[16%]",
-  "left-[28%] top-[64%] md:left-[83%] md:top-[22%]"
+  "left-[8%] top-[14%] landscape:left-[6%] landscape:top-[16%] md:left-[8%] md:top-[18%]",
+  "left-[48%] top-[16%] landscape:left-[24%] landscape:top-[22%] md:left-[26%] md:top-[16%]",
+  "left-[10%] top-[40%] landscape:left-[43%] landscape:top-[15%] md:left-[45%] md:top-[22%]",
+  "left-[50%] top-[44%] landscape:left-[62%] landscape:top-[24%] md:left-[64%] md:top-[15%]",
+  "left-[28%] top-[64%] landscape:left-[80%] landscape:top-[16%] md:left-[82%] md:top-[22%]"
 ];
 
 const PHOTO_ROTATIONS = [-5, 4, -3, 6, -4];
@@ -520,7 +574,7 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({
       }}
       whileHover={{ scale: 1.04, cursor: 'grab' }}
       whileDrag={{ scale: 1.08, cursor: 'grabbing', zIndex: 999 }}
-      className={`absolute ${positionClass} w-44 sm:w-52 md:w-60 lg:w-64 max-w-[85vw] select-none touch-none`}
+      className={`absolute ${positionClass} w-44 sm:w-52 landscape:w-40 md:w-60 lg:w-64 max-w-[85vw] select-none touch-none`}
     >
       {/* Cute Washi Tape at top */}
       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-3.5 bg-rose-200/80 backdrop-blur-[1px] rotate-[-2deg] rounded-[1px] shadow-sm border border-white/60 pointer-events-none z-30" />
@@ -784,7 +838,7 @@ const LetterView = ({ message, aiMessage, name, finalMessage, onReplay }: { mess
       </motion.div>
 
       {/* 3D BOOK STAGE CONTAINER (Strictly NO overflow:hidden so 3D perspective works in Safari/WebKit) */}
-      <div className="relative w-full max-w-[390px] aspect-[736/1308] max-h-[82vh] md:max-w-4xl md:aspect-[1672/941] md:max-h-[80vh] mx-auto book-perspective">
+      <div className="relative w-full max-w-[390px] aspect-[736/1308] max-h-[82vh] landscape:max-w-2xl landscape:aspect-[1672/941] landscape:max-h-[85vh] md:max-w-4xl md:aspect-[1672/941] md:max-h-[80vh] mx-auto book-perspective">
         
         {/* =========================================================================
             LAYER 1: STATIONERY PAGE (Right / Base Page - Fixed under the cover)
@@ -796,36 +850,36 @@ const LetterView = ({ message, aiMessage, name, finalMessage, onReplay }: { mess
             src={MOBILE_LETTER_IMG}
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/letter-bg-mobile.png'; }}
             alt="Birthday stationery"
-            className="md:hidden absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+            className="portrait:block landscape:hidden md:hidden absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           />
 
-          {/* Desktop Horizontal Stationery */}
+          {/* Desktop & Landscape Horizontal Stationery */}
           <img 
             src={DESKTOP_LETTER_IMG}
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/letter-bg-desktop.png'; }}
             alt="Birthday stationery"
-            className="hidden md:block absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+            className="hidden portrait:hidden landscape:block md:block absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           />
 
           {/* Left spine crease shadow where page meets book hinge */}
           <div className="absolute inset-y-0 left-0 w-8 md:w-14 bg-gradient-to-r from-stone-900/30 via-stone-900/10 to-transparent pointer-events-none z-20" />
 
           {/* 1. "A Letter for You" (Positioned in the red circled area: top-right to the right of the flower) */}
-          <div className="absolute top-[6.5%] right-[8%] md:top-[7%] md:left-0 md:right-0 md:text-center z-20 pointer-events-none">
-            <span className="text-[10px] sm:text-[11px] md:text-xs uppercase tracking-[0.25em] font-bold text-[#881337]/80 font-sans">
+          <div className="absolute top-[6.5%] right-[8%] landscape:top-[7%] landscape:left-0 landscape:right-0 landscape:text-center md:top-[7%] md:left-0 md:right-0 md:text-center z-20 pointer-events-none">
+            <span className="text-[10px] sm:text-[11px] landscape:text-xs md:text-xs uppercase tracking-[0.25em] font-bold text-[#881337]/80 font-sans">
               A Letter for You
             </span>
           </div>
 
           {/* 2. "Happy Birthday, {name}" (Shifted a few pixels down below the flower with comfortable clearance) */}
-          <div className="absolute top-[18.5%] left-[7.5%] right-[7.5%] md:top-[16%] md:left-[18%] md:right-[18%] md:text-center z-20 pointer-events-none">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-[#781b2c] tracking-tight leading-tight">
+          <div className="absolute top-[18.5%] left-[7.5%] right-[7.5%] landscape:top-[16%] landscape:left-[18%] landscape:right-[18%] landscape:text-center md:top-[16%] md:left-[18%] md:right-[18%] md:text-center z-20 pointer-events-none">
+            <h2 className="text-xl sm:text-2xl landscape:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-[#781b2c] tracking-tight leading-tight">
               Happy Birthday, {name} <span className="text-[#be123c]">❤️</span>
             </h2>
           </div>
 
           {/* 3. The Green Boxed Area (Dedicated scrollable birthday message container strictly bounded above bottom stickers) */}
-          <div className="absolute top-[28.5%] bottom-[26.5%] left-[7.5%] right-[7.5%] md:top-[28%] md:bottom-[18%] md:left-[18%] md:right-[18%] z-20 overflow-y-auto pr-1.5 sm:pr-2 [scrollbar-width:thin] [scrollbar-color:rgba(120,27,44,0.3)_transparent] flex flex-col justify-between">
+          <div className="absolute top-[28.5%] bottom-[26.5%] left-[7.5%] right-[7.5%] landscape:top-[28%] landscape:bottom-[16%] landscape:left-[18%] landscape:right-[18%] md:top-[28%] md:bottom-[18%] md:left-[18%] md:right-[18%] z-20 overflow-y-auto pr-1.5 sm:pr-2 [scrollbar-width:thin] [scrollbar-color:rgba(120,27,44,0.3)_transparent] flex flex-col justify-between">
             <div className="space-y-4 md:space-y-5">
               <div className="font-serif text-sm sm:text-base md:text-lg leading-relaxed text-[#261510] font-medium whitespace-pre-wrap">
                 {aiMessage || message || "No words can describe how much you mean to me. You are a constant light in my life, and I'm so grateful for every moment we share."}
@@ -1047,7 +1101,7 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
       <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-rose-50/20 pointer-events-none z-0" />
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center space-y-8 sm:space-y-10 my-auto py-8">
+      <div className="relative z-10 w-full max-w-lg landscape:max-w-4xl md:max-w-3xl lg:max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 sm:space-y-8 my-auto py-6 sm:py-8">
         {/* Animated Heading */}
         <div className="space-y-2">
           <motion.span
@@ -1078,28 +1132,28 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
           </motion.p>
         </div>
 
-        {/* Animated Reason Cards */}
-        <div className="w-full space-y-4 sm:space-y-5">
+        {/* Animated Reason Cards: Responsive 1 col in portrait, 2 cols in horizontal/desktop */}
+        <div className="w-full grid grid-cols-1 landscape:grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
           {items.map((thing, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: -35, scale: 0.95 }}
+              initial={{ opacity: 0, x: -25, scale: 0.96 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ 
-                delay: 0.4 + i * 0.2, 
-                duration: 0.7, 
+                delay: 0.3 + i * 0.12, 
+                duration: 0.6, 
                 ease: [0.16, 1, 0.3, 1] 
               }}
-              whileHover={{ scale: 1.02, x: 4 }}
-              className="flex items-center gap-4 sm:gap-5 p-4 sm:p-5 rounded-2xl bg-white/70 backdrop-blur-md border border-[#781b2c]/15 shadow-[0_8px_25px_rgba(120,27,44,0.08)] text-left hover:shadow-[0_12px_30px_rgba(120,27,44,0.14)] transition-all"
+              whileHover={{ scale: 1.02, x: 3 }}
+              className="flex items-center gap-3.5 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-[#781b2c]/15 shadow-[0_8px_25px_rgba(120,27,44,0.08)] text-left hover:shadow-[0_12px_30px_rgba(120,27,44,0.14)] transition-all"
             >
               {/* Number Badge */}
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#881337]/15 to-[#be123c]/20 border border-[#881337]/20 flex items-center justify-center text-[#781b2c] font-serif font-bold text-xl sm:text-2xl shadow-sm flex-shrink-0">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#881337]/15 to-[#be123c]/20 border border-[#881337]/20 flex items-center justify-center text-[#781b2c] font-serif font-bold text-lg sm:text-xl shadow-sm flex-shrink-0">
                 {i + 1}
               </div>
 
               {/* Text */}
-              <p className="text-base sm:text-lg md:text-xl font-serif font-medium text-[#261510] leading-snug">
+              <p className="text-sm sm:text-base md:text-lg font-serif font-medium text-[#261510] leading-snug">
                 {thing}
               </p>
             </motion.div>
@@ -1110,7 +1164,7 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.7, duration: 0.6 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
           className="pt-2"
         >
           <button 
