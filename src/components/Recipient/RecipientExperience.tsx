@@ -7,11 +7,12 @@ import { Button } from '../DesignSystem';
 // --- Intro Screen ---
 const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: () => void }) => {
   useEffect(() => {
-    // Eagerly preload cake assets during Intro screen so Step 2 transitions instantly
+    // Eagerly preload cake & intro assets
     const preload = (src: string) => {
       const img = new Image();
       img.src = src;
     };
+    preload('/intro-bg-horizontal.webp');
     preload('/cake-scene-bg-vertical.webp');
     preload('/cake-scene-bg-horizontal.webp');
     preload('/cake-table-stool.webp');
@@ -30,20 +31,29 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
     >
       {/* Blurred background backdrop filling wide desktop screens & landscape borders */}
       <div 
-        className="fixed inset-0 w-full h-full bg-cover bg-center opacity-40 blur-xl pointer-events-none -z-10 scale-105"
+        className="portrait:block landscape:hidden md:hidden fixed inset-0 w-full h-full bg-cover bg-center opacity-40 blur-xl pointer-events-none -z-10 scale-105"
         style={{ backgroundImage: `url('/intro-bg.webp')` }}
+      />
+      <div 
+        className="hidden portrait:hidden landscape:block md:block fixed inset-0 w-full h-full bg-cover bg-center opacity-40 blur-xl pointer-events-none -z-10 scale-105"
+        style={{ backgroundImage: `url('/intro-bg-horizontal.webp')` }}
       />
       <div className="fixed inset-0 bg-black/35 pointer-events-none -z-10" />
 
-      {/* Main framed parchment stage - Strictly maintains 941/1672 aspect ratio and scales smoothly on zoom & landscape */}
-      <div className="relative z-10 w-full max-w-[430px] landscape:max-w-[340px] md:landscape:max-w-[410px] aspect-[941/1672] max-h-[96vh] my-auto flex flex-col items-center justify-center shadow-2xl rounded-2xl overflow-hidden">
+      {/* =========================================================================
+          PORTRAIT MODE (Vertical 941/1672 Parchment Stage)
+          ========================================================================= */}
+      <div className="portrait:flex landscape:hidden md:hidden relative z-10 w-full max-w-[430px] aspect-[941/1672] max-h-[96vh] my-auto flex-col items-center justify-center shadow-2xl rounded-2xl overflow-hidden">
         <img
           src="/intro-bg.webp"
-          alt="Birthday Parchment"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = '/intro-bg.png';
+          }}
+          alt="Birthday Parchment (Vertical)"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
         />
 
-        {/* Content bounded inside the central parchment area (approx 31% to 69% height) */}
+        {/* Content bounded inside the central parchment area */}
         <div className="relative z-10 w-[84%] h-[40%] flex flex-col items-center justify-between text-center py-2 sm:py-3 px-2">
           <motion.p 
             initial={{ opacity: 0, y: 6 }}
@@ -75,7 +85,60 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
               onClick={onNext}
               className="group relative overflow-hidden px-7 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm md:text-base font-semibold tracking-wide text-[#2b120c] backdrop-blur-xl bg-white/50 hover:bg-white/65 active:scale-95 transition-all duration-300 shadow-[0_8px_25px_rgba(40,10,15,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {/* Specular glass reflection overlay */}
+              <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-80" />
+              <span className="relative z-10 flex items-center gap-2 font-medium">
+                <span>Open Your Surprise</span>
+                <span className="text-base sm:text-lg group-hover:scale-110 transition-transform">🎁</span>
+              </span>
+            </button>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          LANDSCAPE & DESKTOP MODE (Horizontal 1672/941 Parchment Stage)
+          ========================================================================= */}
+      <div className="hidden portrait:hidden landscape:flex md:flex relative z-10 w-full max-w-3xl lg:max-w-4xl xl:max-w-5xl aspect-[1672/941] max-h-[88vh] my-auto flex-col items-center justify-center shadow-2xl rounded-2xl overflow-hidden">
+        <img
+          src="/intro-bg-horizontal.webp"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = '/intro-bg-horizontal.png';
+          }}
+          alt="Birthday Parchment (Horizontal)"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+        />
+
+        {/* Content bounded comfortably inside horizontal parchment area */}
+        <div className="relative z-10 w-[68%] max-w-2xl h-[54%] flex flex-col items-center justify-between text-center py-3 sm:py-5 px-4">
+          <motion.p 
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 0.85, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-xs sm:text-sm uppercase tracking-[0.22em] font-semibold text-[#5a3a24] drop-shadow-sm font-sans line-clamp-2"
+          >
+            {intro || `A birthday celebration crafted with love for ${name} ✨`}
+          </motion.p>
+          
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.7 }}
+            className="text-[clamp(1.6rem,3.5vw,2.75rem)] font-serif leading-[1.18] text-[#24110d] tracking-tight drop-shadow-sm"
+          >
+            {name}, <span className="italic font-normal">this is for you.</span>{' '}
+            <span className="text-rose-600 inline-block drop-shadow-sm">❤️</span>
+          </motion.h1>
+
+          {/* iPhone Style Glass Screen Transparent Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+          >
+            <button 
+              onClick={onNext}
+              className="group relative overflow-hidden px-8 py-3 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-[#2b120c] backdrop-blur-xl bg-white/50 hover:bg-white/65 active:scale-95 transition-all duration-300 shadow-[0_8px_25px_rgba(40,10,15,0.18),inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.06)] border border-white/70 flex items-center justify-center gap-2 cursor-pointer"
+            >
               <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full opacity-80" />
               <span className="relative z-10 flex items-center gap-2 font-medium">
                 <span>Open Your Surprise</span>
@@ -311,14 +374,17 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
               </motion.p>
 
               {/* Continuation Button (in landscape/desktop shown here under the text) */}
-              <div className="hidden landscape:block md:block pt-3">
-                <Button 
+              <div className="hidden landscape:flex md:flex justify-center items-center pt-4 w-full">
+                <button 
                   onClick={onNext}
-                  className="shadow-[0_10px_30px_rgba(136,19,55,0.4)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20 cursor-pointer pointer-events-auto"
+                  className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-white backdrop-blur-xl bg-[#881337] hover:bg-[#9f1239] active:scale-95 transition-all duration-300 shadow-[0_12px_35px_rgba(136,19,55,0.45),inset_0_1px_1.5px_rgba(255,255,255,0.7),inset_0_-1px_1px_rgba(0,0,0,0.1)] border border-white/30 flex items-center justify-center gap-2.5 cursor-pointer pointer-events-auto mx-auto"
                 >
-                  <span>Make a Wish & Continue ✨</span>
-                  <span>→</span>
-                </Button>
+                  <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-full opacity-80" />
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span>Make a Wish & Continue ✨</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </span>
+                </button>
               </div>
             </motion.div>
           )}
@@ -339,7 +405,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           </AnimatePresence>
 
           {/* Cake wrapper: Static and Lit cake match exact dimensions */}
-          <div className="relative z-20 w-44 sm:w-52 md:w-56 landscape:w-36 md:landscape:w-52 lg:w-60 flex items-end justify-center pointer-events-none">
+          <div className="relative z-20 w-44 sm:w-50 md:w-56 landscape:w-36 md:landscape:w-48 lg:w-56 flex items-end justify-center pointer-events-none">
             <AnimatePresence mode="wait">
               {!lit ? (
                 <motion.div
@@ -396,8 +462,8 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
             </AnimatePresence>
           </div>
 
-          {/* Stool Table underneath the cake stand */}
-          <div className="relative z-10 -mt-6 sm:-mt-8 md:-mt-9 landscape:-mt-5 md:landscape:-mt-8 w-52 sm:w-60 md:w-64 landscape:w-44 md:landscape:w-60 lg:w-72 flex items-start justify-center pointer-events-none">
+          {/* Stool Table underneath the cake stand - Positioned so cake base rests in plush cushion center */}
+          <div className="relative z-10 -mt-11 sm:-mt-13 md:-mt-15 landscape:-mt-8 md:landscape:-mt-11 w-64 sm:w-72 md:w-80 landscape:w-52 md:landscape:w-68 lg:w-80 flex items-start justify-center pointer-events-none">
             <img
               src={CAKE_TABLE_STOOL}
               onError={(e) => {
@@ -410,21 +476,25 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           </div>
         </div>
 
-        {/* Bottom Continuation Button (shown in portrait below the cake) */}
+        {/* Bottom Continuation Button (shown in portrait below the cake - strictly centered horizontally) */}
         {lit && (
-          <div className="portrait:block landscape:hidden md:hidden relative z-30 pb-4 pt-2 flex justify-center w-full px-4">
+          <div className="portrait:flex landscape:hidden md:hidden relative z-30 pb-6 pt-2 w-full justify-center items-center px-4 text-center mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.6 }}
+              className="w-full flex justify-center items-center"
             >
-              <Button 
+              <button 
                 onClick={onNext}
-                className="shadow-[0_10px_30px_rgba(136,19,55,0.4)] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold bg-[#881337] hover:bg-[#9f1239] text-white transition-all transform hover:scale-105 flex items-center gap-2 border border-white/20 cursor-pointer pointer-events-auto"
+                className="group relative overflow-hidden px-8 py-3.5 sm:px-9 sm:py-4 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-white backdrop-blur-xl bg-[#881337] hover:bg-[#9f1239] active:scale-95 transition-all duration-300 shadow-[0_12px_35px_rgba(136,19,55,0.45),inset_0_1px_1.5px_rgba(255,255,255,0.7),inset_0_-1px_1px_rgba(0,0,0,0.1)] border border-white/30 flex items-center justify-center gap-2.5 cursor-pointer pointer-events-auto mx-auto"
               >
-                <span>Make a Wish & Continue ✨</span>
-                <span>→</span>
-              </Button>
+                <span className="absolute inset-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-full opacity-80" />
+                <span className="relative z-10 flex items-center gap-2">
+                  <span>Make a Wish & Continue ✨</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </span>
+              </button>
             </motion.div>
           </div>
         )}
