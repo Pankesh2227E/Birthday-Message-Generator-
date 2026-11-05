@@ -20,6 +20,7 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
     preload('/cake-lit.webp');
     preload('/cake-celebration-pink.webp');
     preload('/cake-celebration-pink-lit.webp');
+    preload('/cake-celebration-pink-lit.gif');
   }, []);
 
   return (
@@ -396,6 +397,9 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
 
           {/* Cake wrapper: Static and Lit cake match exact dimensions */}
           <div className="relative z-20 w-44 sm:w-50 md:w-56 landscape:w-36 md:landscape:w-48 lg:w-56 flex items-end justify-center pointer-events-none">
+            {/* Ground contact shadow on stool cushion without triggering Safari filter drop-shadow box bugs */}
+            <div className="absolute bottom-1.5 w-28 sm:w-36 md:w-40 h-4 bg-rose-950/25 blur-md rounded-full pointer-events-none -z-10" />
+
             <AnimatePresence mode="wait">
               {!lit ? (
                 <motion.div
@@ -404,7 +408,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex items-end justify-center"
+                  className="w-full flex items-end justify-center bg-transparent"
                 >
                   <img
                     src={staticCakeSrc}
@@ -417,7 +421,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                       }
                     }}
                     alt="Birthday Cake on Stand"
-                    className="w-full h-auto object-contain filter drop-shadow-[0_16px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
+                    className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
                   />
                 </motion.div>
               ) : (
@@ -426,14 +430,19 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex items-end justify-center"
+                  className="w-full flex items-end justify-center bg-transparent"
                 >
                   <img
                     src={litCakeSrc}
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       if (isPinkCake) {
-                        img.src = '/cake-celebration-pink.png';
+                        // Fall back to clean animated GIF first, then PNG
+                        if (img.src.endsWith('.webp')) {
+                          img.src = '/cake-celebration-pink-lit.gif';
+                        } else {
+                          img.src = '/cake-celebration-pink.png';
+                        }
                       } else if (img.src.includes('.webp')) {
                         img.src = '/cake-lit-cropped.gif';
                       } else {
@@ -441,7 +450,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                       }
                     }}
                     alt="Celebration Birthday Cake with Lit Candle"
-                    className="w-full h-auto object-contain filter drop-shadow-[0_18px_30px_rgba(217,70,239,0.35)] select-none pointer-events-none"
+                    className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
                   />
                 </motion.div>
               )}
