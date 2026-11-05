@@ -5,8 +5,19 @@ import { Generation } from './components/Creator/Generation';
 import { RecipientExperience } from './components/Recipient/RecipientExperience';
 import { AppView, SurpriseData } from './types';
 import { Button } from './components/DesignSystem';
-import { Copy, RefreshCw, ExternalLink } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { ShareScreen } from './components/Creator/ShareScreen';
+import { AdminDashboard } from './components/Admin/AdminDashboard';
+
+const trackEvent = (event: string, details?: any) => {
+  try {
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, details }),
+    }).catch(() => {});
+  } catch (e) {}
+};
 
 const MOCK_SURPRISE: SurpriseData = {
   recipientName: 'Alex',
@@ -40,10 +51,19 @@ export default function App() {
 
   React.useEffect(() => {
     const path = window.location.pathname;
+    
+    // Check for admin route
+    if (path === '/admin' || path.startsWith('/admin/')) {
+      setView('ADMIN');
+      setLoading(false);
+      return;
+    }
+
     const match = path.match(/\/surprise\/([^/]+)/);
     if (match) {
       const id = match[1];
       setSurpriseId(id);
+      trackEvent('link_click', { surpriseId: id });
       fetch(`/api/surprises/${id}`)
         .then(async res => {
           const data = await res.json();
@@ -121,6 +141,10 @@ export default function App() {
   };
 
   const shareUrl = surpriseId ? `${window.location.origin}/surprise/${surpriseId}` : '';
+
+  if (view === 'ADMIN') {
+    return <AdminDashboard />;
+  }
 
   if (view === 'BUILDER') {
     return (
@@ -217,6 +241,9 @@ export default function App() {
   }
 
   return (
-    <Landing onStart={() => setView('BUILDER')} />
+    <Landing onStart={() => {
+      trackEvent('wizard_start');
+      setView('BUILDER');
+    }} />
   );
 }

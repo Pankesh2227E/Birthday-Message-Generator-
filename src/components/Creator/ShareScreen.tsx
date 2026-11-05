@@ -64,8 +64,20 @@ export const ShareScreen: React.FC<ShareScreenProps> = ({
 
   const customShareMessage = `${birthdayGreeting} 🎂✨ I created a special birthday surprise for you. Open it here:\n${shareUrl}`;
 
+  const trackShare = (channel: string) => {
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'surprise_shared',
+        details: { platform: channel, surpriseId, recipientName }
+      })
+    }).catch(() => {});
+  };
+
   // Resilient clipboard copy function (handles iframe security restrictions)
   const copyToClipboard = async (text: string, isMessageOnly: boolean = false) => {
+    trackShare(isMessageOnly ? 'copy_message' : 'copy_link');
     let success = false;
 
     // 1. Modern Clipboard API
@@ -111,6 +123,7 @@ export const ShareScreen: React.FC<ShareScreenProps> = ({
 
   // WhatsApp share
   const handleWhatsAppShare = () => {
+    trackShare('whatsapp');
     const encoded = encodeURIComponent(customShareMessage);
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encoded}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
@@ -118,6 +131,7 @@ export const ShareScreen: React.FC<ShareScreenProps> = ({
 
   // SMS / Contacts share
   const handleSmsShare = () => {
+    trackShare('sms');
     const encoded = encodeURIComponent(customShareMessage);
     // On iOS and Android, sms:?&body= handles message pre-population
     const smsUrl = `sms:?&body=${encoded}`;
@@ -126,6 +140,7 @@ export const ShareScreen: React.FC<ShareScreenProps> = ({
 
   // Instagram share
   const handleInstagramShare = async () => {
+    trackShare('instagram');
     await copyToClipboard(customShareMessage, true);
     setInstagramFeedback(true);
     setTimeout(() => {
@@ -136,6 +151,7 @@ export const ShareScreen: React.FC<ShareScreenProps> = ({
 
   // Native share sheet if available
   const handleNativeShare = async () => {
+    trackShare('native_share');
     if (navigator?.share) {
       try {
         await navigator.share({

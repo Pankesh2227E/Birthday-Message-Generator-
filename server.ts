@@ -11,6 +11,8 @@ import { cloudinaryService, cloudinary } from './server/services/cloudinary';
 import { d1Service } from './server/services/d1';
 import { calculateExpiryTimestamp, isSurpriseExpired, purgeSurprise, startAutoDeleteWorker } from './server/services/autoDelete';
 import { renderPrivacyPolicyPage, renderTermsPage, renderAboutPage, renderContactPage, renderSitemapXml, renderRobotsTxt } from './server/mpaPages';
+import { analyticsService } from './server/services/analytics';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -382,6 +384,9 @@ async function startServer() {
         }
       })();
 
+      // Track surprise creation in analytics
+      analyticsService.trackSurpriseCreated(surpriseId, data?.recipientName);
+
       res.json({ id: surpriseId, status: 'generating' });
     } catch (error: any) {
       console.error(`[PIPELINE] INITIAL FAILED for ${surpriseId}:`, error);
@@ -394,6 +399,9 @@ async function startServer() {
     try {
       const surprise = await d1Service.getSurprise(req.params.id);
       if (!surprise) return res.status(404).json({ error: 'Not found' });
+
+      // Track link click in analytics
+      analyticsService.trackLinkClick(req.params.id, surprise.recipientName);
 
       // Check if surprise has expired (2 days after selected birthdate)
       if (isSurpriseExpired(surprise)) {
@@ -410,6 +418,95 @@ async function startServer() {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // --- Analytics Tracking API ---
+  app.post('/api/analytics/track', (req, res) => {
+    const { event, details } = req.body || {};
+    try {
+      if (event === 'link_click') {
+        analyticsService.trackLinkClick(details?.surpriseId, details?.recipientName);
+      } else if (event === 'wizard_start') {
+        analyticsService.trackWizardStart();
+      } else if (event === 'wizard_step') {
+        analyticsService.trackWizardStep(Number(details?.step) || 1);
+      } else if (event === 'surprise_shared') {
+        analyticsService.trackSurpriseShared(details?.surpriseId, details?.platform);
+      }
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // --- Admin Authentication & Dashboard APIs ---
+  const getAdminToken = () => {
+    const secret = process.env.ADMIN_PASSWORD || 'admin123';
+    return crypto.createHash('sha256').update(`admin_salt_${secret}`).digest('hex');
+  };
+
+  const verifyAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader?.replace(/^Bearer\s+/i, '') || req.query.token;
+    const expectedToken = getAdminToken();
+
+    if (!token || token !== expectedToken) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing admin credentials' });
+    }
+    next();
+  };
+
+  app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body || {};
+    const configuredPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ success: false, error: 'Password is required' });
+    }
+
+    if (password === configuredPassword) {
+      const token = getAdminToken();
+      return res.json({ 
+        success: true, 
+        token, 
+        message: 'Admin authenticated successfully',
+        configured: Boolean(process.env.ADMIN_PASSWORD)
+      });
+    }
+
+    return res.status(401).json({ success: false, error: 'Incorrect admin password' });
+  });
+
+  app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
+    try {
+      const stats = analyticsService.getStats();
+      
+      // Optionally fetch recent surprises from D1
+      let recentSurprises: any[] = [];
+      try {
+        recentSurprises = await d1Service.getAllSurprises();
+      } catch (d1Err) {
+        // Fallback gracefully if D1 is not populated
+      }
+
+      res.json({
+        success: true,
+        stats,
+        surprisesCount: recentSurprises.length || stats.surprisesCreated,
+        recentSurprises: recentSurprises.slice(0, 20),
+        envInfo: {
+          nodeEnv: process.env.NODE_ENV || 'development',
+          passwordConfigured: Boolean(process.env.ADMIN_PASSWORD),
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post('/api/admin/reset', verifyAdmin, (req, res) => {
+    const reset = analyticsService.resetStats();
+    res.json({ success: true, stats: reset });
   });
 
   // --- Multi-Page Application (MPA) Routes for SEO, Privacy, and AdSense ---

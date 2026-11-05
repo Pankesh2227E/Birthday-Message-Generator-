@@ -46,4 +46,4 @@ export interface SurpriseData {
   expires_at?: number;
 }
 
-export type AppView = 'LANDING' | 'BUILDER' | 'GENERATING' | 'RECIPIENT_PREVIEW' | 'RECIPIENT_VIEW' | 'EXPIRED';
+export type AppView = 'LANDING' | 'BUILDER' | 'GENERATING' | 'RECIPIENT_PREVIEW' | 'RECIPIENT_VIEW' | 'EXPIRED' | 'ADMIN';

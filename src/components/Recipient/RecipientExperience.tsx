@@ -23,12 +23,7 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
   }, []);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full flex items-center justify-center text-center overflow-x-hidden overflow-y-auto bg-[#2b040a] select-none p-2 sm:p-4"
-    >
+    <div className="relative min-h-screen w-full flex items-center justify-center text-center overflow-x-hidden overflow-y-auto bg-[#2b040a] select-none p-2 sm:p-4">
       {/* Blurred background backdrop filling wide desktop screens & landscape borders */}
       <div 
         className="portrait:block landscape:hidden md:hidden fixed inset-0 w-full h-full bg-cover bg-center opacity-40 blur-xl pointer-events-none -z-10 scale-105"
@@ -148,7 +143,7 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
           </motion.div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -268,15 +263,10 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     )
   );
   const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.webp' : CAKE_STATIC_PNG;
-  const litCakeSrc = isPinkCake ? (data.cakeUrl || '/cake-celebration-pink-lit.webp') : CAKE_LIT_GIF;
+  const litCakeSrc = isPinkCake ? '/cake-celebration-pink-lit.webp' : (data.cakeUrl || CAKE_LIT_GIF);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full overflow-hidden flex flex-col select-none"
-    >
+    <div className="relative min-h-screen w-full overflow-hidden flex flex-col select-none">
       {/* Soft romantic placeholder gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#fce7f3] via-[#fdf2f8] to-[#fbcfe8] z-0" />
 
@@ -443,11 +433,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       if (isPinkCake) {
-                        if (img.src.includes('-lit.webp')) {
-                          img.src = '/cake-celebration-pink.gif';
-                        } else {
-                          img.src = 'https://i.postimg.cc/nV5BPHSS/IMG-2620.gif';
-                        }
+                        img.src = '/cake-celebration-pink.png';
                       } else if (img.src.includes('.webp')) {
                         img.src = '/cake-lit-cropped.gif';
                       } else {
@@ -499,7 +485,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -733,12 +719,7 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full overflow-hidden select-none"
-    >
+    <div className="relative min-h-screen w-full overflow-hidden select-none">
       {/* 16:9 Local Watercolor Wallpaper */}
       <img
         src={GALLERY_BG}
@@ -844,7 +825,7 @@ const GalleryView = ({ memories, data, onNext }: { memories: any[], data: Surpri
           </span>
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -883,12 +864,7 @@ const LetterView = ({ message, aiMessage, name, finalMessage, onReplay }: { mess
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 text-center select-none"
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 text-center select-none">
       {/* Ambient background glow */}
       <div className="absolute inset-0 cinematic-gradient pointer-events-none -z-10" />
 
@@ -1141,7 +1117,7 @@ const LetterView = ({ message, aiMessage, name, finalMessage, onReplay }: { mess
           )}
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -1154,12 +1130,7 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
     : ['Your contagious smile and positive energy', 'Your unwavering loyalty and support', 'Every single memory and adventure we share'];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="relative min-h-screen w-full overflow-y-auto flex flex-col items-center justify-center p-4 sm:p-6 select-none"
-    >
+    <div className="relative min-h-screen w-full overflow-y-auto flex flex-col items-center justify-center p-4 sm:p-6 select-none">
       {/* Background Image: textured watercolor paper with lotus flowers */}
       <img
         src={THINGS_I_LOVE_BG}
@@ -1250,26 +1221,88 @@ const ThingsILove = ({ things, onNext }: { things?: string[], onNext: () => void
           </button>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
+};
+
+// Realistic 3D Book Page-Flip transition between scenes
+const bookPageVariants = {
+  enter: (direction: number) => ({
+    rotateY: direction >= 0 ? 75 : -75,
+    opacity: 0,
+    transformOrigin: direction >= 0 ? 'left center' : 'right center',
+    filter: 'brightness(0.65)',
+    boxShadow: '-25px 0 50px rgba(0, 0, 0, 0.5)',
+  }),
+  center: {
+    rotateY: 0,
+    opacity: 1,
+    transformOrigin: 'left center',
+    filter: 'brightness(1)',
+    boxShadow: '0 0 0 rgba(0, 0, 0, 0)',
+    transition: {
+      duration: 0.85,
+      ease: [0.22, 1, 0.36, 1], // Smooth open easing
+    },
+  },
+  exit: (direction: number) => ({
+    rotateY: direction >= 0 ? -90 : 90,
+    opacity: 0.1,
+    transformOrigin: direction >= 0 ? 'left center' : 'right center',
+    filter: 'brightness(0.35)',
+    boxShadow: '-35px 0 70px rgba(0, 0, 0, 0.8)',
+    transition: {
+      duration: 0.75,
+      ease: [0.45, 0, 0.2, 1], // Realistic page turn curl
+    },
+  }),
 };
 
 export const RecipientExperience = ({ data, onReplay }: { data: SurpriseData, onReplay?: () => void, key?: React.Key }) => {
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
+
+  const goToStep = (nextStep: number) => {
+    setDirection(nextStep > step ? 1 : -1);
+    setStep(nextStep);
+  };
 
   const handleReplay = () => {
+    setDirection(-1);
     setStep(1);
     if (onReplay) onReplay();
   };
 
   return (
-    <div className="bg-background text-white min-h-screen overflow-hidden">
-      <AnimatePresence mode="wait">
-        {step === 1 && <Intro name={data.recipientName} intro={data.intro} onNext={() => setStep(2)} />}
-        {step === 2 && <CakeView data={data} onNext={() => setStep(3)} />}
-        {step === 3 && <GalleryView memories={data.memories} data={data} onNext={() => setStep(4)} />}
-        {step === 4 && <ThingsILove things={data.things_i_love} onNext={() => setStep(5)} />}
-        {step === 5 && <LetterView name={data.recipientName} message={data.personalMessage} aiMessage={data.birthday_message} finalMessage={data.final_message} onReplay={handleReplay} />}
+    <div className="bg-[#12070e] text-white min-h-screen overflow-hidden relative [perspective:2000px] [transform-style:preserve-3d]">
+      {/* Visual Book Spine & Binding depth on left edge */}
+      <div className="absolute top-0 bottom-0 left-0 w-6 sm:w-12 bg-gradient-to-r from-black/60 via-black/20 to-transparent pointer-events-none z-50 mix-blend-multiply" />
+      <div className="absolute top-0 bottom-0 left-0 w-[1.5px] bg-white/20 pointer-events-none z-50 shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
+
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div
+          key={step}
+          custom={direction}
+          variants={bookPageVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          className="w-full min-h-screen origin-left [transform-style:preserve-3d] [backface-visibility:hidden] relative overflow-hidden"
+        >
+          {step === 1 && <Intro name={data.recipientName} intro={data.intro} onNext={() => goToStep(2)} />}
+          {step === 2 && <CakeView data={data} onNext={() => goToStep(3)} />}
+          {step === 3 && <GalleryView memories={data.memories} data={data} onNext={() => goToStep(4)} />}
+          {step === 4 && <ThingsILove things={data.things_i_love} onNext={() => goToStep(5)} />}
+          {step === 5 && (
+            <LetterView 
+              name={data.recipientName} 
+              message={data.personalMessage} 
+              aiMessage={data.birthday_message} 
+              finalMessage={data.final_message} 
+              onReplay={handleReplay} 
+            />
+          )}
+        </motion.div>
       </AnimatePresence>
     </div>
   );

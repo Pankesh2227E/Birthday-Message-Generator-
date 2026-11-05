@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button, Input, TextArea, StepIndicator, Card, IconButton } from '../DesignSystem';
 import { X, ArrowLeft, ArrowRight, Camera, Sparkles, Check, Plus, Calendar, ShieldCheck } from 'lucide-react';
@@ -157,6 +157,14 @@ export const Wizard = ({ onComplete, initialData, initialStep, aiErrorMessage }:
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [customInterest, setCustomInterest] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'wizard_step', details: { step } })
+    }).catch(() => {});
+  }, [step]);
 
   const update = (fields: Partial<SurpriseData>) => setData(prev => ({ ...prev, ...fields }));
 
