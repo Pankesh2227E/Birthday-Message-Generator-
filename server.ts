@@ -492,7 +492,7 @@ async function startServer() {
       res.json({
         success: true,
         stats,
-        surprisesCount: recentSurprises.length || stats.surprisesCreated,
+        surprisesCount: recentSurprises.length || stats.surprises_created,
         recentSurprises: recentSurprises.slice(0, 20),
         envInfo: {
           nodeEnv: process.env.NODE_ENV || 'development',

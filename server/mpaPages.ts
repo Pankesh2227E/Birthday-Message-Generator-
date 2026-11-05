@@ -404,11 +404,11 @@ const CANONICAL_BASE = 'https://birthdaymessage.cc.cd';
 export function renderPrivacyPolicyPage(origin: string, isNoIndex: boolean = false): string {
   const canonicalUrl = `${CANONICAL_BASE}/privacy-policy`;
   const title = "Privacy Policy – Birthday Surprise";
-  const description = "Learn how Birthday Surprise protects your data with our strict 2-day automatic data deletion policy for all photos, names, and memories.";
+  const description = "Learn how Birthday Surprise protects your data, our user interaction analytics disclosure, and our strict 2-day automatic data deletion guarantee.";
 
   const content = `
     <h1>Privacy Policy</h1>
-    <p class="subtitle">Effective Date: October 12, 2026 | Last Updated: October 12, 2026</p>
+    <p class="subtitle">Effective Date: October 12, 2026 | Last Updated: November 5, 2026</p>
 
     <div class="privacy-badge">
       <div class="privacy-badge-icon">🛡️</div>
@@ -419,28 +419,39 @@ export function renderPrivacyPolicyPage(origin: string, isNoIndex: boolean = fal
     </div>
 
     <h2>1. Information We Collect</h2>
-    <p>We only collect the minimal information necessary to generate your personalized birthday experience:</p>
+    <p>We collect only the minimal data necessary to craft and deliver your personalized birthday celebration:</p>
     <ul>
       <li><strong>Recipient Details:</strong> Name, age, date of birth (DOB), and relationship to the sender.</li>
       <li><strong>Personal Memories:</strong> Stories, how you met, favorite shared memories, personality traits, and hobbies.</li>
       <li><strong>Uploaded Photos:</strong> 3 to 5 photos uploaded by you to create the personalized photo gallery. These images are compressed to a maximum of 300KB each before being stored temporarily on secure cloud infrastructure.</li>
       <li><strong>Personal Notes:</strong> Optional custom messages or birthday notes you choose to include.</li>
+      <li><strong>User Movement & Interaction Telemetry:</strong>
+        <ul style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+          <li><strong>Link Clicks & Page Visits:</strong> We record when a surprise link is opened by a recipient, including the timestamp and surprise reference, to verify link delivery and show celebration engagement.</li>
+          <li><strong>Wizard Step Progression:</strong> When creating a surprise, we log anonymous progress across the creation steps (e.g., reaching Step 1 through Step 8) to understand where users encounter friction or abandon the process.</li>
+          <li><strong>Social Sharing Interactions:</strong> We record when users click "Copy Link", WhatsApp, SMS, Instagram, or native share buttons to measure how celebrations are distributed.</li>
+          <li><strong>Standard Technical Headers:</strong> IP addresses, browser user-agent strings, and request timestamps are processed temporarily in server logs for rate limiting, DDoS mitigation, and diagnostic error analysis.</li>
+        </ul>
+      </li>
     </ul>
 
     <h2>2. How We Use Your Information</h2>
-    <p>Your information is used exclusively to:</p>
+    <p>Your information is used strictly and exclusively to:</p>
     <ul>
-      <li>Render the interactive birthday website for the recipient.</li>
+      <li>Render the interactive birthday website and 3D keepsake letter for the recipient.</li>
       <li>Generate a personalized, respectful birthday letter if you do not provide your own manual message.</li>
-      <li>Provide a unique shareable link for the recipient to experience their birthday surprise.</li>
+      <li>Provide a unique shareable link for the recipient to experience their birthday celebration.</li>
+      <li><strong>Analyze Conversion & Usability:</strong> Track whether shared links are successfully clicked, count total surprises created, measure abandonment rates, and monitor step drop-offs so we can simplify and improve the creation experience.</li>
+      <li><strong>Administrative Oversight:</strong> Display high-level aggregate analytics (link clicks, total created, abandonment count, and shares) within our password-protected administrative portal.</li>
     </ul>
-    <p><strong>We never sell, rent, monetize, or share your personal data, photos, or memories with third-party advertisers or data brokers.</strong></p>
+    <p><strong>We never sell, rent, monetize, or trade your personal data, photos, memories, or interaction telemetry with third-party advertisers or data brokers.</strong></p>
 
     <h2>3. Automated Data Deletion & Retention Schedule</h2>
-    <p>We practice strict data minimization and zero permanent storage:</p>
+    <p>We practice strict data minimization and zero permanent storage for personal celebration content:</p>
     <ul>
       <li><strong>Automatic 2-Day Deletion:</strong> Exactly 48 hours after the selected birthday date, our automated server task permanently purges all records, photos, and associated links from our database and cloud storage.</li>
       <li><strong>Immediate Expiration:</strong> Once expired, anyone opening the link receives an expiration notice confirming that all private photos and data have been wiped.</li>
+      <li><strong>Telemetry Retention:</strong> Aggregated interaction metrics (e.g. total click counts, step completion percentages) contain no personal photos or recipient messages and are retained solely for internal statistical reporting.</li>
     </ul>
 
     <h2>4. Image Processing & Compression</h2>
@@ -451,14 +462,15 @@ export function renderPrivacyPolicyPage(origin: string, isNoIndex: boolean = fal
     <ul>
       <li><strong>Cloudinary:</strong> Used for secure temporary image hosting (purged during auto-deletion).</li>
       <li><strong>Cloudflare D1:</strong> Encrypted, serverless database storing temporary surprise metadata.</li>
+      <li><strong>Google Analytics (GA4):</strong> Google Analytics (Measurement ID: <code>G-M1NR3GVTTS</code>) is used to monitor website health and aggregate traffic patterns. You may opt out of Google Analytics by using the official <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</li>
       <li><strong>Google AdSense:</strong> Google and its advertising partners may use cookies to serve non-intrusive ads on informational pages based on prior visits to our site or other sites on the Internet. Users may opt out of personalized advertising by visiting Google Ad Settings (<a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer">google.com/settings/ads</a>).</li>
     </ul>
 
     <h2>6. Cookies & Tracking Technologies</h2>
-    <p>We use essential cookies strictly necessary for navigation and session security. We do not use intrusive cross-site fingerprinting or tracking beacons.</p>
+    <p>We use essential cookies strictly necessary for navigation, authentication, and session security. Our interaction tracking (link clicks, wizard step progress, and share actions) is logged directly to our first-party server API. We do not engage in keystroke logging, intrusive screen recording, or cross-site fingerprinting.</p>
 
     <h2>7. GDPR & CCPA Compliance</h2>
-    <p>Under GDPR and CCPA, users have the right to access, delete, or restrict the processing of their data. Because our systems permanently delete all user data 2 days after the birthday, your right to be forgotten is automated by design. For immediate manual deletion, email us at <a href="mailto:sahupankesh7@gmail.com">sahupankesh7@gmail.com</a>.</p>
+    <p>Under GDPR and CCPA, users have the right to access, delete, or restrict the processing of their data. Because our systems permanently delete all user celebration data 2 days after the birthday, your right to be forgotten is automated by design. For immediate manual deletion or inquiries, email us at <a href="mailto:sahupankesh7@gmail.com">sahupankesh7@gmail.com</a>.</p>
 
     <h2>8. Contact Our Data Protection Team</h2>
     <p>If you have any questions about this Privacy Policy or wish to request immediate data removal, contact us at:</p>
@@ -485,14 +497,14 @@ export function renderPrivacyPolicyPage(origin: string, isNoIndex: boolean = fal
 export function renderTermsPage(origin: string, isNoIndex: boolean = false): string {
   const canonicalUrl = `${CANONICAL_BASE}/terms-and-conditions`;
   const title = "Terms & Conditions – Birthday Surprise";
-  const description = "Read the Terms & Conditions governing the use of Birthday Surprise, including user conduct, acceptable use, and our automatic 2-day data deletion policy.";
+  const description = "Read the Terms & Conditions governing the use of Birthday Surprise, including user conduct, acceptable use, user interaction telemetry, and our automatic 2-day data deletion policy.";
 
   const content = `
     <h1>Terms & Conditions</h1>
-    <p class="subtitle">Effective Date: October 12, 2026 | Last Updated: October 12, 2026</p>
+    <p class="subtitle">Effective Date: October 12, 2026 | Last Updated: November 5, 2026</p>
 
     <h2>1. Acceptance of Terms</h2>
-    <p>By accessing Birthday Surprise or by pressing the <strong>"Create My Surprise"</strong> button, you agree to be bound by these Terms & Conditions and our Privacy Policy. If you do not agree with any part of these terms, please do not use our service.</p>
+    <p>By accessing Birthday Surprise, creating a birthday celebration, or opening a shared surprise link, you agree to be bound by these Terms & Conditions and our Privacy Policy. If you do not agree with any part of these terms, please do not use our service.</p>
 
     <h2>2. Description of Service</h2>
     <p>Birthday Surprise provides an interactive digital platform allowing users to design and share personalized birthday experiences featuring custom notes, memories, curated photo galleries, and celebratory animated cakes accessible via a unique shareable link.</p>
@@ -501,11 +513,21 @@ export function renderTermsPage(origin: string, isNoIndex: boolean = false): str
     <p>You acknowledge and agree that:</p>
     <ul>
       <li>Birthday surprises and all associated user-provided content (photos, recipient names, dates of birth, memories, and personal messages) are temporary by design.</li>
-      <li>All data is <strong>automatically and permanently deleted 2 days (48 hours) following the selected birthdate</strong>.</li>
+      <li>All personal celebration data is <strong>automatically and permanently deleted 2 days (48 hours) following the selected birthdate</strong>.</li>
       <li>Once deleted, content cannot be recovered, reconstructed, or retrieved. Users are responsible for keeping local copies of any uploaded photos.</li>
     </ul>
 
-    <h2>4. User Content & Acceptable Use Policy</h2>
+    <h2>4. User Interaction Tracking & Analytics Consent</h2>
+    <p>To ensure link accessibility, measure service health, and diagnose builder usability, you acknowledge and agree that:</p>
+    <ul>
+      <li><strong>Click & Access Logging:</strong> When a recipient opens a shared birthday surprise link, our servers log the link click event, timestamp, and celebration identifier.</li>
+      <li><strong>Wizard Flow & Drop-off Monitoring:</strong> As you progress through the creation builder, step progression events (such as reaching or completing Step 1 through Step 8) are tracked to calculate completion and abandonment rates.</li>
+      <li><strong>Share Action Telemetry:</strong> Clicks on sharing options (such as WhatsApp, SMS, Copy Link, or Instagram) are logged to evaluate distribution channels.</li>
+      <li><strong>Administrative Dashboards:</strong> These interaction metrics are aggregated and made accessible exclusively through our password-protected administrative portal for technical monitoring, fraud prevention, and product improvements.</li>
+      <li>All interaction tracking operates in strict adherence to our <a href="/privacy-policy">Privacy Policy</a> and is never sold to third parties.</li>
+    </ul>
+
+    <h2>5. User Content & Acceptable Use Policy</h2>
     <p>You are solely responsible for all images, text, and information you upload. By uploading content, you represent and warrant that:</p>
     <ul>
       <li>You own or have the explicit legal permission of the individuals depicted to share their photos and personal details.</li>
@@ -513,16 +535,16 @@ export function renderTermsPage(origin: string, isNoIndex: boolean = false): str
       <li>We reserve the right to immediately remove or refuse any content violating this policy without notice.</li>
     </ul>
 
-    <h2>5. Image Compression Agreement</h2>
+    <h2>6. Image Compression Agreement</h2>
     <p>To optimize bandwidth, site performance, and server storage, you acknowledge that all uploaded images are compressed to a maximum of 300KB JPEG format. Original uncompressed raw files are neither requested nor retained.</p>
 
-    <h2>6. Disclaimer of Warranties</h2>
-    <p>Birthday Surprise is provided on an "AS IS" and "AS AVAILABLE" basis. While we strive for 99.9% uptime, we do not guarantee uninterrupted, error-free, or delay-free operation.</p>
+    <h2>7. Disclaimer of Warranties</h2>
+    <p>Birthday Surprise is provided on an "AS IS" and "AS AVAILABLE" basis. While we strive for high uptime and smooth delivery, we do not guarantee uninterrupted, error-free, or delay-free operation.</p>
 
-    <h2>7. Limitation of Liability</h2>
+    <h2>8. Limitation of Liability</h2>
     <p>To the fullest extent permitted by applicable law, Birthday Surprise and its operators shall not be liable for any indirect, incidental, punitive, or consequential damages arising from the use of or inability to use the service.</p>
 
-    <h2>8. Governing Law & Contact</h2>
+    <h2>9. Governing Law & Contact</h2>
     <p>These terms shall be governed by and construed in accordance with applicable laws. If you have questions regarding these Terms & Conditions, please contact us at <a href="mailto:sahupankesh7@gmail.com">sahupankesh7@gmail.com</a>.</p>
   `;
 
