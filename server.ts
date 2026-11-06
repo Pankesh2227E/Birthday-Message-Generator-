@@ -576,7 +576,11 @@ async function startServer() {
         if (filePath.match(/(favicon|apple-touch-icon)/i)) {
           res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
         } else if (filePath.match(/\.(webp|png|jpe?g|gif|svg|woff2?|ico)$/i)) {
-          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          if (filePath.match(/\.v\d+\./i) || filePath.includes('/assets/')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else {
+            res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
+          }
         } else if (filePath.endsWith('.webmanifest')) {
           res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
           res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');

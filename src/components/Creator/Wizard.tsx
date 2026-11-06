@@ -79,8 +79,8 @@ export const CAKE_OPTIONS = [
   {
     id: 'pink-celebration-cake',
     name: 'Pink Berry Candle Cake',
-    url: '/cake-celebration-pink-lit.webp',
-    thumbnail: '/cake-celebration-pink.webp',
+    url: '/cake-celebration-pink.v3.webp',
+    thumbnail: '/cake-celebration-pink.v3.webp',
     type: 'cake'
   }
 ];

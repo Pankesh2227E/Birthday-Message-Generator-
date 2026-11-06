@@ -18,9 +18,8 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
     preload('/cake-table-stool.webp');
     preload('/cake-static.webp');
     preload('/cake-lit.webp');
-    preload('/cake-celebration-pink.webp');
-    preload('/cake-celebration-pink-lit.webp');
-    preload('/cake-celebration-pink-lit.gif');
+    preload('/cake-celebration-pink.v2.webp');
+    preload('/cake-celebration-pink.v2.png');
   }, []);
 
   return (
@@ -251,6 +250,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     preload('/letter-bg-desktop.webp');
     preload('/letter-bg-mobile.webp');
     preload('/things-i-love-bg.jpeg');
+    preload('/cake-celebration-pink.v3.webp');
   }, []);
 
   const ordinalAge = getOrdinal(data.recipientAge);
@@ -263,8 +263,8 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
       data.cakeUrl.includes('cake-option-2')
     )
   );
-  const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.webp' : CAKE_STATIC_PNG;
-  const litCakeSrc = isPinkCake ? '/cake-celebration-pink-lit.webp' : (data.cakeUrl || CAKE_LIT_GIF);
+  const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.v2.webp' : CAKE_STATIC_PNG;
+  const litCakeSrc = isPinkCake ? '/cake-celebration-pink.v3.webp' : (data.cakeUrl || CAKE_LIT_GIF);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col select-none">
@@ -387,10 +387,10 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           <AnimatePresence>
             {lit && (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.6 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8 }}
-                className="absolute top-2 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-amber-400/25 blur-[55px] rounded-full pointer-events-none z-10"
+                className="absolute top-2 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-amber-400/25 blur-[55px] rounded-full pointer-events-none z-10 animate-cake-warm-pulse"
               />
             )}
           </AnimatePresence>
@@ -415,7 +415,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       if (isPinkCake) {
-                        img.src = '/cake-celebration-pink.png';
+                        img.src = '/cake-celebration-pink.v2.png';
                       } else if (img.src.includes('.webp')) {
                         img.src = '/cake-static.png';
                       }
@@ -437,12 +437,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
                       if (isPinkCake) {
-                        // Fall back to clean animated GIF first, then PNG
-                        if (img.src.endsWith('.webp')) {
-                          img.src = '/cake-celebration-pink-lit.gif';
-                        } else {
-                          img.src = '/cake-celebration-pink.png';
-                        }
+                        img.src = '/cake-celebration-pink.v2.png';
                       } else if (img.src.includes('.webp')) {
                         img.src = '/cake-lit-cropped.gif';
                       } else {
