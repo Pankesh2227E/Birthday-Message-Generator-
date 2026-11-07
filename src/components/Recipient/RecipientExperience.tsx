@@ -250,7 +250,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     preload('/letter-bg-desktop.webp');
     preload('/letter-bg-mobile.webp');
     preload('/things-i-love-bg.jpeg');
-    preload('/cake-celebration-pink.v3.webp');
+    preload('/cake-celebration-pink-lit.webp');
   }, []);
 
   const ordinalAge = getOrdinal(data.recipientAge);
@@ -264,7 +264,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     )
   );
   const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.v2.webp' : CAKE_STATIC_PNG;
-  const litCakeSrc = isPinkCake ? '/cake-celebration-pink.v3.webp' : (data.cakeUrl || CAKE_LIT_GIF);
+  const litCakeSrc = isPinkCake ? '/cake-celebration-pink-lit.webp' : (data.cakeUrl || CAKE_LIT_GIF);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col select-none">
@@ -383,14 +383,14 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
 
         {/* Right Column / Center Section: Cake resting securely on top of the floral stool table */}
         <div className="relative z-20 flex flex-col items-center justify-end my-auto select-none pointer-events-none">
-          {/* Glow halo when lit */}
+          {/* Ambient warm glow lower down around the cake body and stool so it doesn't overpower the flames */}
           <AnimatePresence>
             {lit && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8 }}
-                className="absolute top-2 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-amber-400/25 blur-[55px] rounded-full pointer-events-none z-10 animate-cake-warm-pulse"
+                className="absolute top-16 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-amber-500/15 blur-[60px] rounded-full pointer-events-none z-10"
               />
             )}
           </AnimatePresence>
@@ -399,6 +399,59 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
           <div className="relative z-20 w-44 sm:w-50 md:w-56 landscape:w-36 md:landscape:w-48 lg:w-56 flex items-end justify-center pointer-events-none">
             {/* Ground contact shadow on stool cushion without triggering Safari filter drop-shadow box bugs */}
             <div className="absolute bottom-1.5 w-28 sm:w-36 md:w-40 h-4 bg-rose-950/25 blur-md rounded-full pointer-events-none -z-10" />
+
+            {/* Black shadow between the cake flickering fire and the background */}
+            {lit && (
+              <motion.div
+                key="flame-black-shadow"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="absolute inset-0 pointer-events-none z-0 overflow-visible"
+              >
+                {/* Primary soft black atmospheric shadow behind the flickering flame cluster */}
+                <div 
+                  className="absolute left-1/2 -translate-x-1/2 -top-2 w-[88%] h-[40%] rounded-full pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(ellipse 65% 55% at 50% 45%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.65) 45%, rgba(0, 0, 0, 0.20) 75%, transparent 100%)',
+                    filter: 'blur(7px)',
+                  }}
+                />
+
+                {/* Concentrated deep black shadow spot behind Left Flame */}
+                <div 
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-16 sm:w-16 sm:h-20 pointer-events-none rounded-full"
+                  style={{
+                    left: '33.2%',
+                    top: '9.8%',
+                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.70) 50%, transparent 100%)',
+                    filter: 'blur(4px)',
+                  }}
+                />
+
+                {/* Concentrated deep black shadow spot behind Center (Tallest) Flame */}
+                <div 
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-16 h-20 sm:w-20 sm:h-24 pointer-events-none rounded-full"
+                  style={{
+                    left: '51.0%',
+                    top: '3.6%',
+                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 50%, transparent 100%)',
+                    filter: 'blur(4px)',
+                  }}
+                />
+
+                {/* Concentrated deep black shadow spot behind Right Flame */}
+                <div 
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-16 sm:w-16 sm:h-20 pointer-events-none rounded-full"
+                  style={{
+                    left: '70.3%',
+                    top: '9.8%',
+                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.70) 50%, transparent 100%)',
+                    filter: 'blur(4px)',
+                  }}
+                />
+              </motion.div>
+            )}
 
             <AnimatePresence mode="wait">
               {!lit ? (
@@ -430,7 +483,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex items-end justify-center bg-transparent"
+                  className="relative z-10 w-full flex items-end justify-center bg-transparent"
                 >
                   <img
                     src={litCakeSrc}
