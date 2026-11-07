@@ -250,7 +250,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     preload('/letter-bg-desktop.webp');
     preload('/letter-bg-mobile.webp');
     preload('/things-i-love-bg.jpeg');
-    preload('/cake-celebration-pink-lit.webp');
+    preload('/cake-celebration-pink.v5.webp');
   }, []);
 
   const ordinalAge = getOrdinal(data.recipientAge);
@@ -264,7 +264,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     )
   );
   const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.v2.webp' : CAKE_STATIC_PNG;
-  const litCakeSrc = isPinkCake ? '/cake-celebration-pink-lit.webp' : (data.cakeUrl || CAKE_LIT_GIF);
+  const litCakeSrc = isPinkCake ? '/cake-celebration-pink.v5.webp' : (data.cakeUrl || CAKE_LIT_GIF);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col select-none">
@@ -400,54 +400,45 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
             {/* Ground contact shadow on stool cushion without triggering Safari filter drop-shadow box bugs */}
             <div className="absolute bottom-1.5 w-28 sm:w-36 md:w-40 h-4 bg-rose-950/25 blur-md rounded-full pointer-events-none -z-10" />
 
-            {/* Black shadow between the cake flickering fire and the background */}
+            {/* Soft subtle dark glow tightly hugging each candle flame for crisp contrast without any black blob */}
             {lit && (
               <motion.div
-                key="flame-black-shadow"
+                key="flame-micro-halos"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5 }}
                 className="absolute inset-0 pointer-events-none z-0 overflow-visible"
               >
-                {/* Primary soft black atmospheric shadow behind the flickering flame cluster */}
+                {/* 1. Micro-halo tightly hugging Left Flame (orange striped candle) */}
                 <div 
-                  className="absolute left-1/2 -translate-x-1/2 -top-2 w-[88%] h-[40%] rounded-full pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(ellipse 65% 55% at 50% 45%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.65) 45%, rgba(0, 0, 0, 0.20) 75%, transparent 100%)',
-                    filter: 'blur(7px)',
-                  }}
-                />
-
-                {/* Concentrated deep black shadow spot behind Left Flame */}
-                <div 
-                  className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-16 sm:w-16 sm:h-20 pointer-events-none rounded-full"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-10 sm:w-9 sm:h-12 pointer-events-none rounded-full"
                   style={{
                     left: '33.2%',
                     top: '9.8%',
-                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.70) 50%, transparent 100%)',
-                    filter: 'blur(4px)',
+                    background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.55) 0%, rgba(20, 15, 25, 0.22) 55%, transparent 100%)',
+                    filter: 'blur(5px)',
                   }}
                 />
 
-                {/* Concentrated deep black shadow spot behind Center (Tallest) Flame */}
+                {/* 2. Micro-halo tightly hugging Center (Tallest) Flame (purple striped candle) */}
                 <div 
-                  className="absolute -translate-x-1/2 -translate-y-1/2 w-16 h-20 sm:w-20 sm:h-24 pointer-events-none rounded-full"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-9 h-12 sm:w-10 sm:h-14 pointer-events-none rounded-full"
                   style={{
                     left: '51.0%',
                     top: '3.6%',
-                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.75) 50%, transparent 100%)',
-                    filter: 'blur(4px)',
+                    background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.58) 0%, rgba(20, 15, 25, 0.25) 55%, transparent 100%)',
+                    filter: 'blur(5px)',
                   }}
                 />
 
-                {/* Concentrated deep black shadow spot behind Right Flame */}
+                {/* 3. Micro-halo tightly hugging Right Flame (blue striped candle) */}
                 <div 
-                  className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-16 sm:w-16 sm:h-20 pointer-events-none rounded-full"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-10 sm:w-9 sm:h-12 pointer-events-none rounded-full"
                   style={{
                     left: '70.3%',
                     top: '9.8%',
-                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.70) 50%, transparent 100%)',
-                    filter: 'blur(4px)',
+                    background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.55) 0%, rgba(20, 15, 25, 0.22) 55%, transparent 100%)',
+                    filter: 'blur(5px)',
                   }}
                 />
               </motion.div>
