@@ -19,7 +19,7 @@ const Intro = ({ name, intro, onNext }: { name: string, intro?: string, onNext: 
     preload('/cake-static.webp');
     preload('/cake-lit.webp');
     preload('/cake-celebration-pink.unlit.webp');
-    preload('/cake-candles-lit-fixed.webp');
+    preload('/cake-celebration-pink.v6.webp');
     preload('/cake-celebration-pink.v2.webp');
     preload('/cake-celebration-pink.v2.png');
   }, []);
@@ -253,7 +253,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     preload('/letter-bg-mobile.webp');
     preload('/things-i-love-bg.jpeg');
     preload('/cake-celebration-pink.unlit.webp');
-    preload('/cake-candles-lit-fixed.webp');
+    preload('/cake-celebration-pink.v6.webp');
   }, []);
 
   const ordinalAge = getOrdinal(data.recipientAge);
@@ -267,7 +267,7 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
     )
   );
   const staticCakeSrc = isPinkCake ? '/cake-celebration-pink.unlit.webp' : CAKE_STATIC_PNG;
-  const litCakeSrc = isPinkCake ? '/cake-candles-lit-fixed.webp' : (data.cakeUrl || CAKE_LIT_GIF);
+  const litCakeSrc = isPinkCake ? '/cake-celebration-pink.v6.webp' : (data.cakeUrl || CAKE_LIT_GIF);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col select-none">
@@ -416,8 +416,8 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                 <div 
                   className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-10 sm:w-9 sm:h-12 pointer-events-none rounded-full"
                   style={{
-                    left: '30.4%',
-                    top: '1.0%',
+                    left: '32.8%',
+                    top: '8.6%',
                     background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.50) 0%, rgba(20, 15, 25, 0.20) 55%, transparent 100%)',
                     filter: 'blur(5px)',
                   }}
@@ -427,8 +427,8 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                 <div 
                   className="absolute -translate-x-1/2 -translate-y-1/2 w-9 h-12 sm:w-10 sm:h-14 pointer-events-none rounded-full"
                   style={{
-                    left: '50.0%',
-                    top: '-4.0%',
+                    left: '50.1%',
+                    top: '2.9%',
                     background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.52) 0%, rgba(20, 15, 25, 0.22) 55%, transparent 100%)',
                     filter: 'blur(5px)',
                   }}
@@ -438,8 +438,8 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
                 <div 
                   className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-10 sm:w-9 sm:h-12 pointer-events-none rounded-full"
                   style={{
-                    left: '68.5%',
-                    top: '1.0%',
+                    left: '68.2%',
+                    top: '7.7%',
                     background: 'radial-gradient(ellipse at 50% 50%, rgba(15, 10, 20, 0.50) 0%, rgba(20, 15, 25, 0.20) 55%, transparent 100%)',
                     filter: 'blur(5px)',
                   }}
@@ -447,93 +447,56 @@ const CakeView = ({ data, onNext }: { data: SurpriseData, onNext: () => void }) 
               </motion.div>
             )}
 
-            {isPinkCake ? (
-              <div className="relative w-full flex items-end justify-center bg-transparent">
-                {/* 1. Base Cake: Always pristine 1400px Retina resolution, never gets swapped or dropped */}
-                <img
-                  src={staticCakeSrc}
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    img.src = '/cake-celebration-pink.v2.webp';
-                  }}
-                  alt="Birthday Cake on Stand"
-                  className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
-                />
-
-                {/* 2. Layered Animated Flames (Option 1): Ignites and flickers on top of the candles when lit */}
-                <AnimatePresence>
-                  {lit && (
-                    <motion.div
-                      key="fixed-lit-flames-overlay"
-                      initial={{ opacity: 0, scale: 0.96 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.45, ease: 'easeOut' }}
-                      className="absolute pointer-events-none z-20 overflow-visible"
-                      style={{
-                        width: '75.7%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        top: '-13.5%',
-                      }}
-                    >
-                      <img
-                        src="/cake-candles-lit-fixed.webp"
-                        alt="Lit Candle Flames"
-                        className="w-full h-auto object-contain select-none pointer-events-none transform-gpu"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <AnimatePresence mode="wait">
-                {!lit ? (
-                  <motion.div
-                    key="static-cake"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-full flex items-end justify-center bg-transparent"
-                  >
-                    <img
-                      src={staticCakeSrc}
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (img.src.includes('.webp')) {
-                          img.src = '/cake-static.png';
-                        }
-                      }}
-                      alt="Birthday Cake on Stand"
-                      className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
-                    />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="lit-cake"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative z-10 w-full flex items-end justify-center bg-transparent"
-                  >
-                    <img
-                      src={litCakeSrc}
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        if (img.src.includes('.webp')) {
-                          img.src = '/cake-lit-cropped.gif';
-                        } else {
-                          img.src = '/cake-lit.gif';
-                        }
-                      }}
-                      alt="Celebration Birthday Cake with Lit Candle"
-                      className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            )}
+            <AnimatePresence mode="wait">
+              {!lit ? (
+                <motion.div
+                  key="static-cake"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full flex items-end justify-center bg-transparent"
+                >
+                  <img
+                    src={staticCakeSrc}
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (isPinkCake) {
+                        img.src = '/cake-celebration-pink.unlit.png';
+                      } else if (img.src.includes('.webp')) {
+                        img.src = '/cake-static.png';
+                      }
+                    }}
+                    alt="Birthday Cake on Stand"
+                    className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="lit-cake"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="relative z-10 w-full flex items-end justify-center bg-transparent"
+                >
+                  <img
+                    src={litCakeSrc}
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      if (isPinkCake) {
+                        img.src = '/cake-celebration-pink.unlit.png';
+                      } else if (img.src.includes('.webp')) {
+                        img.src = '/cake-lit-cropped.gif';
+                      } else {
+                        img.src = '/cake-lit.gif';
+                      }
+                    }}
+                    alt="Celebration Birthday Cake with Lit Candle"
+                    className="w-full h-auto object-contain select-none pointer-events-none transform-gpu bg-transparent"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Stool Table underneath the cake stand - Positioned so cake base rests in plush cushion center */}
